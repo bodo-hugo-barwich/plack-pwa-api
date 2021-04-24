@@ -20,3 +20,25 @@ C<EXE_FILES: bin/cpanm>
 
 =back
 
+=head2 Sat Apr 24 12:11:04 2021: C<Module> L<local::lib|local::lib>
+
+=over 4
+
+=item *
+
+C<installed into: /app/perl5/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.000024>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
