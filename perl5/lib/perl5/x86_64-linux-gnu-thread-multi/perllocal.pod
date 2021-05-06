@@ -42,3 +42,25 @@ C<EXE_FILES: >
 
 =back
 
+=head2 Thu May  6 21:57:33 2021: C<Module> L<Net::Server|Net::Server>
+
+=over 4
+
+=item *
+
+C<installed into: /app/perl5/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 2.010>
+
+=item *
+
+C<EXE_FILES: bin/net-server>
+
+=back
+
