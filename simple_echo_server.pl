@@ -10,7 +10,7 @@ use lib "$FindBin::Bin/../lib";
     
 print "Net::Server Version: ";
 
-print $Net::Server::VERSION . "\n" ;
+print $Net::Server::VERSION . "\n";
 
 
 
