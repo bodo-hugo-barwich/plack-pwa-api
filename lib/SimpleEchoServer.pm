@@ -1,4 +1,4 @@
-    package SimpleEchoServer;
+package SimpleEchoServer;
     use warnings;
     use strict;
      
