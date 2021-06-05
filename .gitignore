@@ -1,3 +1,12 @@
+#Glitch Production Environment
 .glitchdotcom.json
 .node-gyp
 node_modules
+
+#Installation Logs
+.cpanm
+blib
+perl5
+
+#Project Files
+.project
