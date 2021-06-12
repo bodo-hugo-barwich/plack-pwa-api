@@ -1,6 +1,6 @@
 
 # @author Bodo (Hugo) Barwich
-# @version 2020-03-21
+# @version 2021-06-12
 # @package Plack Twiggy REST API
 # @subpackage Product/Factory.pm
 
@@ -32,7 +32,7 @@ package Product::Factory;
 #----------------------------------------------------------------------------
 #Dependencies
 
-use Moose; # automatically turns on strict and warnings
+use Moose;
 
 use Product;
 use Product::List;

@@ -8,4 +8,6 @@ requires 'HTTP::Parser::XS';
 requires 'Twiggy';
 requires 'JSON::XS';
 requires 'JSON';
+requires 'Digest::MD5';
+requires 'Path::Tiny';
 requires 'Moose';

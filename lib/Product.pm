@@ -25,7 +25,7 @@ package Product;
 #----------------------------------------------------------------------------
 #Dependencies
 
-use Moose; # automatically turns on strict and warnings
+use Moose;
 
 
 
