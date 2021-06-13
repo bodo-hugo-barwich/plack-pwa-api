@@ -19,6 +19,7 @@
     "glitch",
     "perl",
     "Plack",
-    "Twiggy"
+    "Twiggy",
+    "Moose",
   ]
 }

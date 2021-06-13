@@ -70,27 +70,50 @@ if [ "$1" = "plackup" ]; then
   fi  #if [ -n "$itwiggy" ]; then
 
 
-  #Checking Template Toolkit Version
+  #Checking JSON Version
 
-  echo -n "Template Toolkit Version: "
+  echo -n "JSON Version: "
 
-  perl -MTemplate -e 'print $Template::VERSION;' 2>/dev/null 1>log/perl_template.log ||\
+  perl -MJSON -e 'print $JSON::VERSION;' 2>/dev/null 1>log/perl_json.log ||\
     iresult=$?
 
   if [ -z "$iresult" ]; then
     iresult=0
   fi
 
-  itt=`cat log/perl_template.log`
+  ijson=`cat log/perl_json.log`
 
-  if [ -n "$itt" ]; then
-    echo "$itt [Code: '$iresult']"
+  if [ -n "$ijson" ]; then
+    echo "$ijson [Code: '$iresult']"
   else
     echo "NONE [Code: '$iresult']"
 
     #Trigger cpanm Installation
     icpanm=1
-  fi  #if [ -n "$itt" ]; then
+  fi  #if [ -n "$ijson" ]; then
+
+
+  #Checking JSON Version
+
+  echo -n "Moose Version: "
+
+  perl -MMoose -e 'print $Moose::VERSION;' 2>/dev/null 1>log/perl_moose.log ||\
+    iresult=$?
+
+  if [ -z "$iresult" ]; then
+    iresult=0
+  fi
+
+  imoose=`cat log/perl_moose.log`
+
+  if [ -n "$imoose" ]; then
+    echo "$imoose [Code: '$iresult']"
+  else
+    echo "NONE [Code: '$iresult']"
+
+    #Trigger cpanm Installation
+    icpanm=1
+  fi  #if [ -n "$imoose" ]; then
 
 
   if [ $icpanm -eq 1 ]; then

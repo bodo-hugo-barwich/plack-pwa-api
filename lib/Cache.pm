@@ -41,9 +41,7 @@ use Moose;
 
 sub setCache
 {
-  my ($self, $scachekey) = @_[0..1];
-  my $rsdata = $_[3];
-
+  die("Method '" . (caller(0))[3] . "' - Implementation missing!");
 }
 
 
@@ -54,11 +52,7 @@ sub setCache
 
 sub getCache
 {
-  my ($self, $scachekey) = @_[0..1];
-  my $sdata = undef;
-
-
-  return $sdata;
+  die("Method '" . (caller(0))[3] . "' - Implementation missing!");
 }
 
 

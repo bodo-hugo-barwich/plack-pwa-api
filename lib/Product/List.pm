@@ -50,6 +50,7 @@ has 'products' => (
     setProduct => 'set',
     getProduct => 'get',
     hasProduct => 'exists',
+    getProductCount => 'count',
   },
 );
 
@@ -64,6 +65,20 @@ sub setList
   my ($self, $rhshlist) = @_ ;
 
 
+  if(scalar(keys %$rhshlist) > 0)
+  {
+    my $prod = undef;
+    my $slnknm = undef;
+
+
+    for $slnknm (keys %$rhshlist)
+    {
+      $prod = Product->new($rhshlist->{$slnknm});
+
+      $self->products->set($slnknm, $prod);
+    } #for $slnknm (keys %$rhshlist)
+  } #if(scalar(keys %$rhshlist) > 0)
+
 }
 
 
@@ -77,6 +92,20 @@ sub getList
   my $rhshlist = {};
 
 
+  unless($self->products->is_empty())
+  {
+    my $prod = undef;
+
+
+    for $prod ($self->products->kv)
+    {
+      $rhshlist->{$prod->[0]} = {'name' => $prod->[1]->name, 'link_name' => $prod->[1]->link_name
+        , 'image' => $prod->[1]->image};
+    }
+  } #unless($self->products->is_empty())
+
+
+  return $rhshlist;
 }
 
 
