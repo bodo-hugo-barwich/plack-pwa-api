@@ -32,11 +32,13 @@ use strict;
 
 use Cwd qw(abs_path);
 use File::Basename qw(dirname);
+use Path::Tiny;
 
 use JSON;
 use Plack::Builder;
 use Plack::Request;
 
+use Cache::Files;
 use Product::List;
 use Product::Factory;
 
@@ -46,7 +48,7 @@ use Product::Factory;
 #Executing Section
 
 
-my $smaindir = dirname(dirname( abs_path(__FILE__) ));
+my $smaindir = path(__FILE__)->parent->parent->stringify;
 my $svmainpath = '/';
 
 my $app = sub {
@@ -70,7 +72,8 @@ my $app = sub {
       my $responder = shift;
       my $writer = $responder->([ 200, [ 'Content-Type', 'application/json' ]]);
 
-      my $prodfactory = Product::Factory->new();
+      my $cache = Cache::Files->new($smaindir . '/cache/');
+      my $prodfactory = Product::Factory->new($cache);
       my $lstprods = $prodfactory->buildProductList;
 
       my $rhshrspdata = $lstprods->getList;

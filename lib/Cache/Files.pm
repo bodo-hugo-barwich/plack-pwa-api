@@ -18,6 +18,9 @@
 
 
 
+# Functional style
+use Digest::MD5 qw(md5_hex);
+
 use Path::Tiny;
 
 
@@ -33,6 +36,8 @@ package Cache::Files;
 
 use Moose;
 
+extends 'Cache';
+
 
 
 #----------------------------------------------------------------------------
@@ -40,8 +45,8 @@ use Moose;
 
 
 has 'cachemaindirectory' => (
-    is        => 'ro',
     isa       => 'Str',
+    is        => 'ro',
     'default' => sub { path(__FILE__)->parent->parent->parent->stringify . '/cache/'; },
 );
 
@@ -82,10 +87,36 @@ sub setCache
 {
   my ($self, $scachekey) = @_[0..1];
   my $rsdata = $_[3];
+  my $irs = 0;
 
 
+  if(defined $scachekey
+    && defined $rsdata
+    && $scachekey ne '')
+  {
+    my $cachefile = undef;
+    my $skeymd5 = md5_hex($scachekey);
 
 
+    $cachefile = path($self->cachemaindirectory, '/' . substr($skeymd5, 0, 1)
+      , '/' . substr($skeymd5, 0, 2) . '/', $skeymd5 . '.json');
+
+    eval
+    {
+      $cachefile->spew(($$rsdata));
+
+      $irs = $cachefile->exists;
+    };
+
+    if($@)
+    {
+
+    }
+  } #if(defined $scachekey && defined $rsdata
+    # && $scachekey ne '')
+
+
+  return $irs;
 }
 
 
@@ -99,6 +130,31 @@ sub getCache
   my ($self, $scachekey) = @_[0..1];
   my $sdata = undef;
 
+
+  if(defined $scachekey
+    && $scachekey ne '')
+  {
+    my $cachefile = undef;
+    my $skeymd5 = md5_hex($scachekey);
+
+
+    $cachefile = path($self->cachemaindirectory, '/' . substr($skeymd5, 0, 1)
+      , '/' . substr($skeymd5, 0, 2) . '/', $skeymd5 . '.json');
+
+    if($cachefile->exists)
+    {
+      eval
+      {
+        $sdata = $cachefile->slurp;
+      };
+
+      if($@)
+      {
+
+      }
+    } #if($cachefile->exists)
+  } #if(defined $scachekey && defined $rsdata
+    # && $scachekey ne '')
 
 
   return $sdata;

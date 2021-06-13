@@ -1,30 +1,30 @@
-# Hello Node
+# NAME
 
-[Node.js](https://nodejs.org/en/about/) is a popular runtime that lets you run JavaScript on the server instead of in a browser. This project uses the [Fastify](https://www.fastify.io/) framework to explore basic templating with [Handlebars](https://handlebarsjs.com/) and submitting data using forms and querystrings.
+Plack Twiggy Product REST API
 
-## What's in this project?
+# DESCRIPTION
 
-← `README.md`: That’s this file, where you can tell people what your cool website does and how you built it.
+This service provides the `Product Data` as _REST API_ for the _Plack Twiggy PWA_ Project.
 
-← `public/style.css`: The styling rules for your pages and posts.
+To learn more about the _Plack Twiggy PWA_ Project please visit:
+[Plack Twiggy PWA](https://github.com/bodo-hugo-barwich/plack-pwa-web)
 
-← `server.js`: The main server script for your new site.
+The running Version is hosted on _Glitch_ at:
+[Plack Twiggy Product REST API](https://plack-pwa-api.glitch.me/)
 
-← `src/`: This folder holds the main template for your site along with some basic data files.
+# REQUIREMENTS
 
-### Working in the `src/` folder 📁
+To rebuild this web site the **Minimum Requirements** are to have _Perl_ and `cpanminus` installed.
+The site uses the libraries `Plack`, `Twiggy` and `JSON`.
+The `Twiggy` Web Server requires the `AnyEvent` library.
+The Server Responses are provides completely as `JSON` documents.
+The API Data Structures are implemented with the `Moose` library for **OO-Design**.
 
-← `src/pages/index.hbs`: This is the main page template for your site.
+# INSTALLATION
 
-← `src/colors.json`: A collection of CSS color names. We use this to pick a random color, and to match searches against color names.
+- cpanminus
 
-← `src/seo.json`: When you're ready to share your new site or add a custom domain, change SEO/meta settings in here.
+    The `cpanm` Script will install the dependencies on local user level as they are found in the `cpanfile`.
+    To run the installation call the `cpanm` Command within the project directory:
 
-![Glitch](https://cdn.glitch.com/a9975ea6-8949-4bab-addb-8a95021dc2da%2FLogo_Color.svg?v=1602781328576)
-
-## You built this with Glitch!
-
-[Glitch](https://glitch.com) is a friendly community where millions of people come together to build web apps and websites.
-
-- Need more help? [Check out our Help Center](https://help.glitch.com/) for answers to any common questions.
-- Ready to make it official? [Become a paid Glitch member](https://glitch.com/pricing) to boost your app with private sharing, more storage and memory, domains and more.
+            cpanm -vn --installdeps .
