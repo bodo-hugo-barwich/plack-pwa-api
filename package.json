@@ -4,8 +4,8 @@
   "description": "The Plack API Backend for the PWA Application running on a Twiggy Web Server",
   "main": "server.js",
   "scripts": {
-    "build": "mkdir -p ~/bin && curl -L https://cpanmin.us/ -o ~/bin/cpanm && chmod +x ~/bin/cpanm && cpanm --local-lib=~/perl5 local::lib ; eval $(perl -I ~/perl5/lib/perl5/ -Mlocal::lib) && cpanm -vn --installdeps .",
-    "start": "eval $(perl -I ~/perl5/lib/perl5/ -Mlocal::lib) && cpanm -vn --installdeps . && perl simple_echo_server.pl"
+    "build": "mkdir -p ~/bin && curl -L https://cpanmin.us/ -o ~/bin/cpanm && chmod +x ~/bin/cpanm ; cpanm --local-lib=~/perl5 local::lib && eval $(perl -Mlocal::lib -I ~/perl5/lib/perl5/) ; cpanm -vn --installdeps .",
+    "start": "mkdir -p ~/bin && curl -L https://cpanmin.us/ -o ~/bin/cpanm && chmod +x ~/bin/cpanm ; cpanm --local-lib=~/perl5 local::lib && eval $(perl -Mlocal::lib -I ~/perl5/lib/perl5/) ; cpanm -vn --installdeps . ; perl simple_echo_server.pl"
   },
   "dependencies": {},
   "engines": {
@@ -16,8 +16,10 @@
   },
   "license": "MIT",
   "keywords": [
-    "perl",
     "glitch",
-    "Net::Server"
+    "perl",
+    "Plack",
+    "Twiggy",
+    "Moose",
   ]
 }
