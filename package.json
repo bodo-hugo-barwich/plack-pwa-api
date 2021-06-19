@@ -12,7 +12,7 @@
     "node": 13
   },
   "repository": {
-    "url": "https://glitch.com/edit/#!/perl-net-server"
+    "url": "https://glitch.com/edit/#!/plack-pwa-api"
   },
   "license": "MIT",
   "keywords": [
