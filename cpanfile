@@ -1,7 +1,6 @@
 requires 'local::lib';
 requires 'PSGI';
 requires 'Plack';
-requires 'Net::Server';
 requires 'HTTP::Server::PSGI';
 requires 'AnyEvent';
 requires 'HTTP::Parser::XS';

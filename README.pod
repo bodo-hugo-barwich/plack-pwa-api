@@ -17,8 +17,8 @@ L<Plack Twiggy Product REST API|https://plack-pwa-api.glitch.me/>
 To rebuild this web site the B<Minimum Requirements> are to have I<Perl> and C<cpanminus> installed.
 The site uses the libraries C<Plack>, C<Twiggy> and C<JSON>.
 The C<Twiggy> Web Server requires the C<AnyEvent> library.
-The Server Responses are provides completely as C<JSON> documents.
-The API Data Structures are implemented with the C<Moose> library for B<OO-Design>.
+The Server Responses are provided completely as C<JSON> documents.
+The B<API Data Structures> are implemented with the C<Moose> library for B<OO-Design>.
 
 =head1 INSTALLATION
 

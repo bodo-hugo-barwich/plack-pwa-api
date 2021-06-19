@@ -17,8 +17,8 @@ The running Version is hosted on _Glitch_ at:
 To rebuild this web site the **Minimum Requirements** are to have _Perl_ and `cpanminus` installed.
 The site uses the libraries `Plack`, `Twiggy` and `JSON`.
 The `Twiggy` Web Server requires the `AnyEvent` library.
-The Server Responses are provides completely as `JSON` documents.
-The API Data Structures are implemented with the `Moose` library for **OO-Design**.
+The Server Responses are provided completely as `JSON` documents.
+The **API Data Structures** are implemented with the `Moose` library for **OO-Design**.
 
 # INSTALLATION
 
