@@ -1,0 +1,34 @@
+=head1 NAME
+
+Plack Twiggy Product REST API
+
+=head1 DESCRIPTION
+
+This service provides the C<Product Data> as I<REST API> for the I<Plack Twiggy PWA> Project.
+
+To learn more about the I<Plack Twiggy PWA> Project please visit:
+L<Plack Twiggy PWA|https://github.com/bodo-hugo-barwich/plack-pwa-web>
+
+The running Version is hosted on I<Glitch> at:
+L<Plack Twiggy Product REST API|https://plack-pwa-api.glitch.me/>
+
+=head1 REQUIREMENTS
+
+To rebuild this web site the B<Minimum Requirements> are to have I<Perl> and C<cpanminus> installed.
+The site uses the libraries C<Plack>, C<Twiggy> and C<JSON>.
+The C<Twiggy> Web Server requires the C<AnyEvent> library.
+The Server Responses are provides completely as C<JSON> documents.
+The API Data Structures are implemented with the C<Moose> library for B<OO-Design>.
+
+=head1 INSTALLATION
+
+=over
+
+=item cpanminus
+
+The C<cpanm> Script will install the dependencies on local user level as they are found in the C<cpanfile>.
+To run the installation call the C<cpanm> Command within the project directory:
+
+	cpanm -vn --installdeps .
+
+=back
