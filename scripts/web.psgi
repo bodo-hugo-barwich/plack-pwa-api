@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-06-06
+# @version 2021-06-19
 # @package Plack Twiggy REST API
 # @subpackage /scripts/web.psgi
 
@@ -83,6 +83,23 @@ my $app = sub {
       $response->content(encode_json($rhshrspdata));
 
     };  #sub
+  }
+  elsif($request->path_info() eq '/'
+    || $request->path_info() eq '')
+  {
+    #------------------------
+    #Project Description
+
+    my $rhshrspdata = {'title' => 'Plack Twiggy - API'
+      , 'statuscode' => 200
+      , 'message' => 'Index'
+      , 'description' => 'Product Data API for the Plack Twiggy PWA Project'
+    };
+
+
+    $response->code(200);
+    $response->content(encode_json($rhshrspdata));
+
   }
   else  #Any other URL: Not Found Error
   {

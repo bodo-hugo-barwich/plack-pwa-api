@@ -1,6 +1,6 @@
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-06-12
+# @version 2021-06-19
 # @package Plack Twiggy REST API
 # @subpackage Product/Factory.pm
 
@@ -38,6 +38,8 @@ use Moose;
 
 use Product;
 use Product::List;
+
+use constant PRODUCTLISTKEY => 'product-list';
 
 
 
@@ -107,6 +109,9 @@ sub buildProductList
 
   if($icount == -1)
   {
+    $self->list->setList($self->cache->getCache(Product::Factory::PRODUCTLISTKEY
+      . '_' . $icount . '_' . $ioffset))
+      if(defined $self->cache);
 
   } #if($icount == -1)
 
@@ -117,13 +122,22 @@ sub buildProductList
 
 sub saveProductList
 {
-  my ($self, $lstprods) = @_;
+  my ($self, $lstprods, $icount, $ioffset) = @_;
   my $irs = 0;
 
+
+  $icount = -1 unless(defined $icount);
+  $ioffset = 0 unless(defined $ioffset);
 
   if(defined blessed $lstprods
     && $lstprods->isa('Product::List'))
   {
+    my $rhshdata = $lstprods->getList;
+
+
+    $self->cache->setCache(Product::Factory::PRODUCTLISTKEY
+      . '_' . $icount . '_' . $ioffset, $rhshdata)
+      if(defined $self->cache);
 
   } #if(defined blessed $lstprods && $lstprods->isa('Product::List'))
 
