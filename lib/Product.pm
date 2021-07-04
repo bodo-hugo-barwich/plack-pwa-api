@@ -34,10 +34,10 @@ use Moose;
 #Properties
 
 
-has 'type' => (is => 'ro', isa => 'Str', 'default' => 'Coffee');
-has 'name' => (is => 'rw', isa => 'Str');
-has 'link_name' => (is => 'rw', isa => 'Str');
-has 'image' => (is => 'rw', isa => 'Str');
+has 'type' => (isa => 'Str', is => 'ro', 'default' => 'Coffee');
+has 'name' => (isa => 'Str', is => 'rw');
+has 'link_name' => (isa => 'Str', is => 'rw');
+has 'image' => (isa => 'Str', is => 'rw');
 
 
 

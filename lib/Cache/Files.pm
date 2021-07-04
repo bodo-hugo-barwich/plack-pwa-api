@@ -18,13 +18,6 @@
 
 
 
-# Functional style
-use Digest::MD5 qw(md5_hex);
-
-use Path::Tiny;
-
-
-
 #==============================================================================
 # The Cache::Files Package
 
@@ -37,6 +30,13 @@ package Cache::Files;
 use Moose;
 
 extends 'Cache';
+
+
+# Functional style
+use Digest::MD5 qw(md5_hex);
+
+use Path::Tiny;
+use AnyEvent::Future;
 
 
 
@@ -85,8 +85,7 @@ around BUILDARGS => sub {
 
 sub setCache
 {
-  my ($self, $scachekey) = @_[0..1];
-  my $rsdata = $_[3];
+  my ($self, $scachekey, $rsdata) = @_ ;
   my $irs = 0;
 
 
@@ -94,29 +93,66 @@ sub setCache
     && defined $rsdata
     && $scachekey ne '')
   {
-    my $cachefile = undef;
-    my $skeymd5 = md5_hex($scachekey);
+    my $writewatch = AnyEvent::Future->new;
 
 
-    $cachefile = path($self->cachemaindirectory, '/' . substr($skeymd5, 0, 1)
-      , '/' . substr($skeymd5, 0, 2) . '/', $skeymd5 . '.json');
+    $writewatch->on_fail(\&Cache::Files::_printWatchError);
 
-    eval
-    {
-      $cachefile->spew(($$rsdata));
+    $self->_doWriteCache($writewatch, $scachekey, $rsdata);
 
-      $irs = $cachefile->exists;
-    };
+    $irs = $writewatch->get;
 
-    if($@)
-    {
-
-    }
   } #if(defined $scachekey && defined $rsdata
     # && $scachekey ne '')
 
 
   return $irs;
+}
+
+sub _doWriteCache
+{
+  my ($self, $writewatch, $scachekey, $rsdata) = @_ ;
+  my $cachedirectory = undef;
+  my $cachefile = undef;
+  my $skeymd5 = md5_hex($scachekey);
+
+
+  $cachefile = path($self->cachemaindirectory, '/' . substr($skeymd5, 0, 1)
+    , '/' . substr($skeymd5, 0, 2) . '/', $skeymd5 . '.json');
+  $cachedirectory = $cachefile->parent;
+
+  eval
+  {
+    #unless($cachedirectory->exists)
+    #{
+    #  $cachedirectory->mkpath();
+    #}
+
+    $cachefile->spew(($$rsdata));
+
+    $writewatch->done($cachefile->exists);
+  };
+
+  if($@)
+  {
+    my $irs = 0 + $! ;
+
+    $writewatch->fail({'key' => $scachekey, 'operation' => 'Set', 'file' => $cachefile->stringify
+      , 'errorcode' => $irs, 'errormessage' => $! , 'exception' => $@ });
+
+    $irs = 0;
+  } #if($@)
+}
+
+sub _printWatchError
+{
+  my $rhsherr = $_[0];
+
+
+  print STDERR "Cache '", $rhsherr->{'key'}, "': ", $rhsherr->{'operation'}, " Cache failed with Exception ["
+    , $rhsherr->{'errorcode'}, "]: '", $rhsherr->{'errormessage'} , "'\n";
+  print STDERR "File '", $rhsherr->{'file'}, "' - Exception Message: '"
+    , $rhsherr->{'exception'}->{'msg'}  , "'\n";
 }
 
 
@@ -136,6 +172,7 @@ sub getCache
   {
     my $cachefile = undef;
     my $skeymd5 = md5_hex($scachekey);
+    my $irs = 0;
 
 
     $cachefile = path($self->cachemaindirectory, '/' . substr($skeymd5, 0, 1)
@@ -150,8 +187,13 @@ sub getCache
 
       if($@)
       {
+        $irs = 0 + $! ;
 
-      }
+        print STDERR "Cache '$scachekey': Get Cache failed with Exception [$irs]: '" . $! . "'\n";
+        print STDERR "File '" . $cachefile->stringify . "' - Exception Message: '" . $@ . "'\n";
+
+        $irs = 0;
+      } #if($@)
     } #if($cachefile->exists)
   } #if(defined $scachekey && defined $rsdata
     # && $scachekey ne '')
