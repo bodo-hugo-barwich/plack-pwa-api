@@ -41,9 +41,6 @@ use JSON;
 
 use Plack::Builder;
 use Plack::Request;
-use HTTP::Headers::Fast;
-use AnyEvent;
-use HTTP::Status;
 
 use Cache::Files;
 use Product::List;
@@ -55,18 +52,11 @@ use Product::Factory;
 #Auxiliary Functions
 
 
-sub dispatchIndexPage
+sub dispatchHomePage
 {
   print "API Home - Dispatch go ...\n";
 
   my ($req, $res) = @_ ;
-  #my $response = $_[0]->new_response(200);
-
-
-  #$response->content_type('application/json');
-  #$response->headers->push_header('connection' => 'close');
-
-#    sleep 15;
 
 
   #------------------------
@@ -79,14 +69,12 @@ sub dispatchIndexPage
   };
 
 
-  #$response->code(200);
-  #$response->content(encode_json($rhshrspdata));
+  $res->code(200);
+
+  $res->content(encode_json($rhshrspdata));
 
 
-  #return $response->finalize;
-  return $res->([200, [ 'Content-Type' => 'application/json']
-      , [ encode_json($rhshrspdata) ]
-    ]);
+  return $res->finalize;
 }
 
 sub dispatchProductList
@@ -104,8 +92,37 @@ sub dispatchProductList
   print "res dmp:\n", dump $res;
   print "\n";
 
+  unless(defined $req->env->{'psgix.io'})
+  {
+    #------------------------
+    #Error Response
+    #Extension psgix.io is required
+
+    my $rhshrspdata = {'title' => 'Plack Twiggy - Error'
+      , 'statuscode' => 501
+      , 'errormessage' => 'Extension missing!'
+      , 'errordescription' => 'This server does not support psgix.io extension.'
+    };
+
+
+    $stmnow  = strftime('%F %T', localtime);
+
+    print STDERR "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - Extension missing: "
+      , $rhshrspdata->{'errordescription'};
+
+    $res->code(501);
+    $res->content(encode_json($rhshrspdata));
+
+
+    return $res->finalize;
+  } #unless(defined $req->env->{'psgix.io'})
+
+
   eval
   {
+    #------------------------
+    #Build Product List
+
     my $cache = Cache::Files->new($smndir . '/cache/');
     my $prodfactory = Product::Factory->new($cache);
     my $lstprods = $prodfactory->buildProductList;
@@ -138,7 +155,6 @@ sub dispatchProductList
     print STDERR "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - Exception: ", $@ ;
 
     $res->code(500);
-
     $res->content(encode_json($rhshrspdata));
 
   } #if($@)
@@ -146,7 +162,6 @@ sub dispatchProductList
 
   return $res->finalize;
 }
-
 
 
 
@@ -172,89 +187,18 @@ my $app = sub {
 
   if($request->path_info() eq '/coffees')
   {
-    unless(defined $env->{'psgix.io'})
-    {
-      #------------------------
-      #Error Response
-      #Extension psgix.io is required
-
-      my $rhshrspdata = {'title' => 'Plack Twiggy - Error'
-        , 'statuscode' => 501
-        , 'errormessage' => 'Extension missing!'
-        , 'errordescription' => 'This server does not support psgix.io extension.'
-      };
-
-
-      $response->code(501);
-      $response->content(encode_json($rhshrspdata));
-
-      return $response->finalize;
-    } #unless(defined $env->{'psgix.io'})
-
-
-
     #------------------------
-    #Product List
-
+    #Dispatch Product List
 
     return dispatchProductList($smaindir, $request, $response);
-
-
-#    return sub {
-#      my $responder = shift;
-#      my $rsphdrs = undef;
-#      my $writer = $responder->([200, ['content-type' => 'application/json', 'connection' => 'close']]);
-#      my $socket = $env->{'psgix.io'};
-#      my $cv = AE::cv;
-#      my $stmnow  = strftime('%F %T', localtime);
-
-
-#      print "$stmnow : Request '", $env->{REQUEST_URI}, "' - starting...\n";
-
-#      print STDERR "AE::cv dmp:\n", dump $cv;
-#      print STDERR "\n";
-
-      #$writer = Twiggy::Writer->new($socket, $cv);
-      #$cv->end;
-
-
-#      print STDERR "wrtr dmp:\n", dump $writer;
-#      print STDERR "\n";
-
-#      $response->content_type('text/plain');
-
-
-      #sleep 15;
-
-
-
-
-#      $response->finalize;
-
- #    };  #sub
   }
   elsif($request->path_info() eq '/'
     || $request->path_info() eq '')
   {
     #------------------------
-    #Dispatch Index Page
+    #Dispatch Home Page
 
-    print "API Home - dispatching...\n";
-
-    return sub {
-      my $responder = $_[0];
-      my $timer;
-      my $fdispatchIndexPage = \&dispatchIndexPage;
-
-
-      $timer = AnyEvent->timer(after => 0, cb => sub {
-          undef $timer;
-
-
-          return $fdispatchIndexPage->($request, $responder);
-
-        }); #$timer = AnyEvent->timer()
-    };  #return sub
+    return dispatchHomePage($request, $response);
   }
   else  #Any other URL: Not Found Error
   {
