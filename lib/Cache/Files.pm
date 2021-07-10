@@ -83,87 +83,32 @@ around BUILDARGS => sub {
 #Administration Methods
 
 
+sub setAsyncCache
+{
+  my $self = $_[0];
+  my $writewatch = AnyEvent::Future->new;
+
+
+  #print "'" . (caller(0))[3] . "' - go ...\n";
+
+  $writewatch->on_fail(\&Cache::Files::_printWatchError);
+
+  $self->_writeAsyncCache($writewatch, @_[1..$#_]);
+
+  #print "'" . (caller(0))[3] . "' - done.\n";
+
+
+  return $writewatch;
+}
+
 sub setCache
 {
-  my ($self, $scachekey, $rsdata) = @_ ;
-  my $irs = 0;
-
-
-  if(defined $scachekey
-    && defined $rsdata
-    && $scachekey ne '')
-  {
-    my $writewatch = AnyEvent::Future->new;
-
-
-    $writewatch->on_fail(\&Cache::Files::_printWatchError);
-
-    $self->_doWriteCache($writewatch, $scachekey, $rsdata);
-
-    $irs = $writewatch->get;
-
-  } #if(defined $scachekey && defined $rsdata
-    # && $scachekey ne '')
-
-
-  return $irs;
+  return $_[0]->setAsyncCache(@_[1..$#_])->get;
 }
 
-sub _doWriteCache
+sub _readAsyncCache
 {
-  my ($self, $writewatch, $scachekey, $rsdata) = @_ ;
-  my $cachedirectory = undef;
-  my $cachefile = undef;
-  my $skeymd5 = md5_hex($scachekey);
-
-
-  $cachefile = path($self->cachemaindirectory, '/' . substr($skeymd5, 0, 1)
-    , '/' . substr($skeymd5, 0, 2) . '/', $skeymd5 . '.json');
-  $cachedirectory = $cachefile->parent;
-
-  eval
-  {
-    #unless($cachedirectory->exists)
-    #{
-    #  $cachedirectory->mkpath();
-    #}
-
-    $cachefile->spew(($$rsdata));
-
-    $writewatch->done($cachefile->exists);
-  };
-
-  if($@)
-  {
-    my $irs = 0 + $! ;
-
-    $writewatch->fail({'key' => $scachekey, 'operation' => 'Set', 'file' => $cachefile->stringify
-      , 'errorcode' => $irs, 'errormessage' => $! , 'exception' => $@ });
-
-    $irs = 0;
-  } #if($@)
-}
-
-sub _printWatchError
-{
-  my $rhsherr = $_[0];
-
-
-  print STDERR "Cache '", $rhsherr->{'key'}, "': ", $rhsherr->{'operation'}, " Cache failed with Exception ["
-    , $rhsherr->{'errorcode'}, "]: '", $rhsherr->{'errormessage'} , "'\n";
-  print STDERR "File '", $rhsherr->{'file'}, "' - Exception Message: '"
-    , $rhsherr->{'exception'}->{'msg'}  , "'\n";
-}
-
-
-
-#----------------------------------------------------------------------------
-#Consultation Methods
-
-
-sub getCache
-{
-  my ($self, $scachekey) = @_[0..1];
+  my ($self, $readwatch, $scachekey, $rhshrequest) = @_;
   my $sdata = undef;
 
 
@@ -183,23 +128,120 @@ sub getCache
       eval
       {
         $sdata = $cachefile->slurp;
+
+        $readwatch->done($scachekey, $rhshrequest, $sdata);
       };
 
       if($@)
       {
-        $irs = 0 + $! ;
+        my $irs = 0 + $! ;
 
-        print STDERR "Cache '$scachekey': Get Cache failed with Exception [$irs]: '" . $! . "'\n";
-        print STDERR "File '" . $cachefile->stringify . "' - Exception Message: '" . $@ . "'\n";
 
-        $irs = 0;
+        $readwatch->fail({'key' => $scachekey, 'operation' => 'Get', 'file' => $cachefile->stringify
+          , 'errorcode' => $irs, 'errormessage' => $! , 'exception' => $@ });
       } #if($@)
+    }
+    else  #The Cache Key does not exist
+    {
+      $readwatch->done($scachekey, $rhshrequest, $sdata);
     } #if($cachefile->exists)
-  } #if(defined $scachekey && defined $rsdata
+  }
+  else  #Cache Key missing
+  {
+    my $smsg = 'Cache Key is empty or not set.';
+
+    $readwatch->fail({'key' => 'undefined', 'operation' => 'Get', 'file' => ''
+      , 'errorcode' => 3, 'errormessage' => 'Cache Key missing!', 'exception' => {'msg' => $smsg} });
+  } #if(defined $scachekey
     # && $scachekey ne '')
+}
+
+sub _writeAsyncCache
+{
+  my ($self, $writewatch, $scachekey, $rsdata) = @_ ;
 
 
-  return $sdata;
+  #print "'" . (caller(0))[3] . "' - go ...\n";
+
+  $$rsdata = '' unless(defined $rsdata);
+
+  if(defined $scachekey
+    && $scachekey ne '')
+  {
+    my $cachedirectory = undef;
+    my $cachefile = undef;
+    my $skeymd5 = md5_hex($scachekey);
+
+
+    $cachefile = path($self->cachemaindirectory, '/' . substr($skeymd5, 0, 1)
+      , '/' . substr($skeymd5, 0, 2) . '/', $skeymd5 . '.json');
+    $cachedirectory = $cachefile->parent;
+
+    eval
+    {
+      unless($cachedirectory->exists)
+      {
+        $cachedirectory->mkpath();
+      }
+
+      $cachefile->spew($$rsdata);
+
+      $writewatch->done($scachekey, $cachefile->exists);
+    };
+
+    if($@)
+    {
+      my $irs = 0 + $! ;
+
+
+      $writewatch->fail({'key' => $scachekey, 'operation' => 'Set', 'file' => $cachefile->stringify
+        , 'errorcode' => $irs, 'errormessage' => $! , 'exception' => $@ });
+    } #if($@)
+  }
+  else  #Cache Key missing
+  {
+    my $smsg = 'Cache Key is empty or not set.';
+
+    $writewatch->fail({'key' => 'undefined', 'operation' => 'Set', 'file' => ''
+      , 'errorcode' => 3, 'errormessage' => 'Cache Key missing!', 'exception' => {'msg' => $smsg} });
+  } #if(defined $scachekey
+    # && $scachekey ne '')
+}
+
+sub _printWatchError
+{
+  my $rhsherr = $_[0];
+
+
+  print STDERR "Cache '", $rhsherr->{'key'}, "': ", $rhsherr->{'operation'}, " Cache failed with Exception ["
+    , $rhsherr->{'errorcode'}, "]: '", $rhsherr->{'errormessage'} , "'\n";
+  print STDERR "File '", $rhsherr->{'file'}, "' - Exception Message: '"
+    , $rhsherr->{'exception'}->{'msg'}  , "'\n";
+}
+
+
+
+#----------------------------------------------------------------------------
+#Consultation Methods
+
+
+sub getAsyncCache
+{
+  my $self = $_[0];
+  my $readwatch = AnyEvent::Future->new;
+
+
+  $readwatch->on_fail(\&Cache::Files::_printWatchError);
+
+  $self->_readAsyncCache($readwatch, @_[1..$#_]);
+
+
+  return $readwatch;
+}
+
+sub getCache
+{
+  return $_[0]->getAsyncCache(@_[1..$#_])->get;
 }
 
 

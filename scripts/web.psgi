@@ -37,6 +37,8 @@ use Path::Tiny;
 use POSIX qw(strftime);
 use Data::Dump qw(dump);
 
+use JSON;
+
 use Plack::Builder;
 use Plack::Request;
 use HTTP::Headers::Fast;
@@ -82,9 +84,67 @@ sub dispatchIndexPage
 
 
   #return $response->finalize;
-  return $res->([200, [ 'Content-Type' => 'application/json', 'Connection' => 'close']
+  return $res->([200, [ 'Content-Type' => 'application/json']
       , [ encode_json($rhshrspdata) ]
     ]);
+}
+
+sub dispatchProductList
+{
+  print "API Product List - Dispatch go ...\n";
+
+  my ($smndir, $req, $res) = @_ ;
+  my $stmnow  = strftime('%F %T', localtime);
+
+  print "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - starting...\n";
+
+  print "req dmp:\n", dump $req;
+  print "\n";
+
+  print "res dmp:\n", dump $res;
+  print "\n";
+
+  eval
+  {
+    my $cache = Cache::Files->new($smndir . '/cache/');
+    my $prodfactory = Product::Factory->new($cache);
+    my $lstprods = $prodfactory->buildProductList;
+    my $rhshrspdata = $lstprods->exportList;
+
+
+    $res->content(encode_json($rhshrspdata));
+
+    $stmnow  = strftime('%F %T', localtime);
+
+    print "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - done.\n";
+    print STDERR "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - No Error.\n";
+  };  #eval
+
+  if($@)
+  {
+    #------------------------
+    #Error Response
+    #An Exception has occurred
+
+    my $rhshrspdata = {'title' => 'Plack Twiggy - Exception'
+      , 'statuscode' => 500
+      , 'errormessage' => 'Exception has occurred!'
+      , 'errordescription' => 'Plack Twiggy - Exception: ' . $@
+    };
+
+
+    $stmnow  = strftime('%F %T', localtime);
+
+    print STDERR "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - Exception: ", $@ ;
+
+    $res->code(500);
+
+    $res->content(encode_json($rhshrspdata));
+
+  } #if($@)
+
+
+  return $res->finalize;
 }
 
 
@@ -104,7 +164,7 @@ my $app = sub {
 
 
   $response->content_type('application/json');
-  $response->headers->push_header('connection' => 'close');
+  #$response->headers->push_header('connection' => 'close');
 
 
 	#------------------------
@@ -136,127 +196,42 @@ my $app = sub {
     #------------------------
     #Product List
 
-    return sub {
-      my $responder = shift;
-      my $rsphdrs = undef;
-      my $writer = $responder->([200, ['content-type' => 'text/plain', 'connection' => 'close']]);
-      my $socket = $env->{'psgix.io'};
-      my $cv = AE::cv;
-      my $stmnow  = strftime('%F %T', localtime);
+
+    return dispatchProductList($smaindir, $request, $response);
 
 
-      print "$stmnow : Request '", $env->{REQUEST_URI}, "' - starting...\n";
+#    return sub {
+#      my $responder = shift;
+#      my $rsphdrs = undef;
+#      my $writer = $responder->([200, ['content-type' => 'application/json', 'connection' => 'close']]);
+#      my $socket = $env->{'psgix.io'};
+#      my $cv = AE::cv;
+#      my $stmnow  = strftime('%F %T', localtime);
 
-      print STDERR "AE::cv dmp:\n", dump $cv;
-      print STDERR "\n";
+
+#      print "$stmnow : Request '", $env->{REQUEST_URI}, "' - starting...\n";
+
+#      print STDERR "AE::cv dmp:\n", dump $cv;
+#      print STDERR "\n";
 
       #$writer = Twiggy::Writer->new($socket, $cv);
       #$cv->end;
 
 
-      print STDERR "wrtr dmp:\n", dump $writer;
-      print STDERR "\n";
+#      print STDERR "wrtr dmp:\n", dump $writer;
+#      print STDERR "\n";
 
-      $response->content_type('text/plain');
-
-
-      sleep 15;
+#      $response->content_type('text/plain');
 
 
-      eval
-      {
-        my $cache = Cache::Files->new($smaindir . '/cache/');
-        my $prodfactory = Product::Factory->new($cache);
-        my $lstprods = $prodfactory->buildProductList;
+      #sleep 15;
 
 
-        $rsphdrs = $response->headers;
-
-        #$writer->write("HTTP/1.0 " . $response->status . " " . HTTP::Status::status_message($response->status) . "\r\n");
-        #$writer->write($rsphdrs->as_string_without_sort());
-        #$writer->write("\r\n");
-
-        $writer->write("lst prds dmp:\n" . dump $lstprods);
-        $writer->write("\n");
 
 
-        my $rhshrspdata = $lstprods->exportList;
+#      $response->finalize;
 
-
-        $writer->write("rsp data dmp:\n" . dump $rhshrspdata);
-        $writer->write("\n");
-
-        $writer->write("rsp json:\n");
-        $writer->write(encode_json($rhshrspdata));
-        $writer->write("\n");
-
-        $writer->write("arr args dmp:\n");
-        $writer->write(dump @_ );
-        $writer->write("\n");
-
-
-        $writer->write(encode_json($rhshrspdata));
-
-        $writer->write("env dmp:\n");
-        $writer->write(dump $env);
-        $writer->write("\n");
-
-        $writer->write("rsp dmp:\n");
-        $writer->write(dump $response);
-        $writer->write("\n");
-
-        $writer->write("rspr dmp:\n");
-        $writer->write(dump $responder);
-        $writer->write("\n");
-
-        $writer->write("wrtr dmp:\n");
-        $writer->write(dump $writer);
-        $writer->write("\n");
-
-        $writer->write("lst prds - done.\n");
-
-        $writer->close();
-
-        $stmnow  = strftime('%F %T', localtime);
-
-        print "$stmnow : Request '", $env->{REQUEST_URI}, "' - done.\n";
-        print STDERR "$stmnow : Request '", $env->{REQUEST_URI}, "' - No Error.\n";
-
-      };  #eval
-
-      if($@)
-      {
-        #------------------------
-        #Error Response
-        #An Exception has occurred
-
-        my $rhshrspdata = {'title' => 'Plack Twiggy - Exception'
-          , 'statuscode' => 500
-          , 'errormessage' => 'Exception has occurred!'
-          , 'errordescription' => 'Plack Twiggy - Exception: ' . $@
-        };
-
-
-        $stmnow  = strftime('%F %T', localtime);
-
-        print STDERR "$stmnow : Request '", $env->{REQUEST_URI}, "' - Exception: ", $@ ;
-
-        $response->code(500);
-
-        $writer->write("HTTP/1.0 " . $response->status . " Internal Server Error\r\n");
-        $writer->write($rsphdrs->as_string_without_sort());
-        $writer->write("\r\n");
-
-        $writer->write(encode_json($rhshrspdata));
-
-        $writer->close();
-
-      } #if($@)
-
-
-      $response->finalize;
-
-    };  #sub
+ #    };  #sub
   }
   elsif($request->path_info() eq '/'
     || $request->path_info() eq '')
