@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-06-06
+# @version 2021-06-19
 # @package Plack Twiggy REST API
 # @subpackage /scripts/web.psgi
 
@@ -10,6 +10,7 @@
 #
 #---------------------------------
 # Requirements:
+# - The Perl Module "Path::Tiny" must be installed
 # - The Perl Module "JSON" must be installed
 # - The Perl Module "Plack" must be installed
 # - The Perl Module "Twiggy" must be installed
@@ -31,17 +32,152 @@ BEGIN
 use warnings;
 use strict;
 
-use Cwd qw(abs_path);
-use File::Basename qw(dirname);
 use Path::Tiny;
 
+use POSIX qw(strftime);
+use Data::Dump qw(dump);
+
 use JSON;
+
 use Plack::Builder;
 use Plack::Request;
 
 use Cache::Files;
 use Product::List;
 use Product::Factory;
+
+
+
+#----------------------------------------------------------------------------
+#Auxiliary Functions
+
+sub printHomePage
+{
+  my ($req, $wtr) = @_ ;
+
+
+  #------------------------
+  #Project Description
+
+  my $rhshrspdata = {'title' => 'Plack Twiggy - API'
+    , 'statuscode' => 200
+    , 'page' => 'Home'
+    , 'description' => 'Product Data API for the Plack Twiggy PWA Project'
+  };
+
+
+  $wtr->write(encode_json($rhshrspdata));
+
+  $wtr->close();
+}
+
+sub dispatchHomePage
+{
+  my ($req, $res) = @_ ;
+
+
+  #------------------------
+  #Project Description
+
+  my $rhshrspdata = {'title' => 'Plack Twiggy - API'
+    , 'statuscode' => 200
+    , 'page' => 'Home'
+    , 'description' => 'Product Data API for the Plack Twiggy PWA Project'
+  };
+
+
+  $res->code(200);
+  $res->content(encode_json($rhshrspdata));
+
+
+  return $res->finalize;
+}
+
+sub dispatchProductList
+{
+  print "API Product List - Dispatch go ...\n";
+
+  my ($smndir, $req, $res) = @_ ;
+  my $stmnow  = strftime('%F %T', localtime);
+
+  print "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - starting...\n";
+
+  print "req dmp:\n", dump $req;
+  print "\n";
+
+  print "res dmp:\n", dump $res;
+  print "\n";
+
+  unless(defined $req->env->{'psgix.io'})
+  {
+    #------------------------
+    #Error Response
+    #Extension psgix.io is required
+
+    my $rhshrspdata = {'title' => 'Plack Twiggy - Error'
+      , 'statuscode' => 501
+      , 'errormessage' => 'Extension missing!'
+      , 'errordescription' => 'This server does not support psgix.io extension.'
+    };
+
+
+    $stmnow  = strftime('%F %T', localtime);
+
+    print STDERR "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - Extension missing: "
+      , $rhshrspdata->{'errordescription'};
+
+    $res->code(501);
+    $res->content(encode_json($rhshrspdata));
+
+
+    return $res->finalize;
+  } #unless(defined $req->env->{'psgix.io'})
+
+
+  eval
+  {
+    #------------------------
+    #Build Product List
+
+    my $cache = Cache::Files->new($smndir . '/cache/');
+    my $prodfactory = Product::Factory->new($cache);
+    my $lstprods = $prodfactory->buildProductList;
+    my $rhshrspdata = $lstprods->exportList;
+
+
+    $res->content(encode_json($rhshrspdata));
+
+    $stmnow  = strftime('%F %T', localtime);
+
+    print "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - done.\n";
+    print STDERR "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - No Error.\n";
+  };  #eval
+
+  if($@)
+  {
+    #------------------------
+    #Error Response
+    #An Exception has occurred
+
+    my $rhshrspdata = {'title' => 'Plack Twiggy - Exception'
+      , 'statuscode' => 500
+      , 'errormessage' => 'Exception has occurred!'
+      , 'errordescription' => 'Plack Twiggy - Exception: ' . $@
+    };
+
+
+    $stmnow  = strftime('%F %T', localtime);
+
+    print STDERR "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - Exception: ", $@ ;
+
+    $res->code(500);
+    $res->content(encode_json($rhshrspdata));
+
+  } #if($@)
+
+
+  return $res->finalize;
+}
 
 
 
@@ -56,9 +192,13 @@ my $app = sub {
   my $env = shift;
   my $request = Plack::Request->new($env);
   my $response = $request->new_response(200);
-
+  my $headers = undef;
 
   $response->content_type('application/json');
+  $response->headers->push_header('Access-Control-Allow-Origin' => "*");
+  $response->headers->push_header('Content-Security-Policy' => "default-src 'self' localhost *.glitch.me; img-src *; style-src 'unsafe-inline'");
+  #$response->headers->push_header('Content-Security-Policy' => "default-src *; img-src *; style-src 'unsafe-inline'");
+  $response->headers->push_header('connection' => 'close');
 
 
 	#------------------------
@@ -67,22 +207,30 @@ my $app = sub {
   if($request->path_info() eq '/coffees')
   {
     #------------------------
-    #Product List
+    #Dispatch Product List
+
+    return dispatchProductList($smaindir, $request, $response);
+  }
+  elsif($request->path_info() eq '/'
+    || $request->path_info() eq '')
+  {
+    #------------------------
+    #Dispatch Home Page
 
     return sub {
       my $responder = shift;
-      my $writer = $responder->([ 200, [ 'Content-Type', 'application/json' ]]);
+      my $writer = $responder->([ 200, $response->headers->psgi_flatten() ]);
+      my $timer;
 
-      my $cache = Cache::Files->new($smaindir . '/cache/');
-      my $prodfactory = Product::Factory->new($cache);
-      my $lstprods = $prodfactory->buildProductList;
+      my $fprintHomePage = \&printHomePage;
 
-      my $rhshrspdata = $lstprods->getList;
-
-
-      $response->content(encode_json($rhshrspdata));
-
-    };  #sub
+       $timer = AnyEvent->timer(
+          after => 0,
+          cb => sub {
+            undef $timer; # cancel circular-ref
+            $fprintHomePage->($request, $writer);
+       });  #$timer
+    };  #return sub
   }
   elsif($request->path_info() eq '/'
     || $request->path_info() eq '')
@@ -119,7 +267,7 @@ my $app = sub {
   } #if($request->path_info() eq '/coffees')
 
 
-  $response->finalize;
+  return $response->finalize;
 
 };  #$app
 
