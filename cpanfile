@@ -8,5 +8,6 @@ requires 'Twiggy';
 requires 'JSON::XS';
 requires 'JSON';
 requires 'Digest::MD5';
+requires 'Data::Dump';
 requires 'Path::Tiny';
 requires 'Moose';
