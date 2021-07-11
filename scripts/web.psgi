@@ -51,11 +51,28 @@ use Product::Factory;
 #----------------------------------------------------------------------------
 #Auxiliary Functions
 
+sub printHomePage
+{
+  my ($req, $wtr) = @_ ;
+
+
+  #------------------------
+  #Project Description
+
+  my $rhshrspdata = {'title' => 'Plack Twiggy - API'
+    , 'statuscode' => 200
+    , 'page' => 'Home'
+    , 'description' => 'Product Data API for the Plack Twiggy PWA Project'
+  };
+
+
+  $wtr->write(encode_json($rhshrspdata));
+
+  $wtr->close();
+}
 
 sub dispatchHomePage
 {
-  print "API Home - Dispatch go ...\n";
-
   my ($req, $res) = @_ ;
 
 
@@ -70,7 +87,6 @@ sub dispatchHomePage
 
 
   $res->code(200);
-
   $res->content(encode_json($rhshrspdata));
 
 
@@ -176,10 +192,13 @@ my $app = sub {
   my $env = shift;
   my $request = Plack::Request->new($env);
   my $response = $request->new_response(200);
-
+  my $headers = undef;
 
   $response->content_type('application/json');
-  #$response->headers->push_header('connection' => 'close');
+  $response->headers->push_header('Access-Control-Allow-Origin' => "*");
+  $response->headers->push_header('Content-Security-Policy' => "default-src 'self' localhost *.glitch.me; img-src *");
+  #$response->headers->push_header('Content-Security-Policy' => "default-src *"); Access-Control-Allow-Headers: *
+  $response->headers->push_header('connection' => 'close');
 
 
 	#------------------------
@@ -198,7 +217,20 @@ my $app = sub {
     #------------------------
     #Dispatch Home Page
 
-    return dispatchHomePage($request, $response);
+    return sub {
+      my $responder = shift;
+      my $writer = $responder->([ 200, $response->headers->psgi_flatten() ]);
+      my $timer;
+
+      my $fprintHomePage = \&printHomePage;
+
+       $timer = AnyEvent->timer(
+          after => 0,
+          cb => sub {
+            undef $timer; # cancel circular-ref
+            $fprintHomePage->($request, $writer);
+       });  #$timer
+    };  #return sub
   }
   else  #Any other URL: Not Found Error
   {
