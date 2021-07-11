@@ -196,8 +196,8 @@ my $app = sub {
 
   $response->content_type('application/json');
   $response->headers->push_header('Access-Control-Allow-Origin' => "*");
-  $response->headers->push_header('Content-Security-Policy' => "default-src 'self' localhost *.glitch.me; img-src *");
-  #$response->headers->push_header('Content-Security-Policy' => "default-src *"); Access-Control-Allow-Headers: *
+  $response->headers->push_header('Content-Security-Policy' => "default-src 'self' localhost *.glitch.me; img-src *; style-src 'unsafe-inline'");
+  #$response->headers->push_header('Content-Security-Policy' => "default-src *; img-src *; style-src 'unsafe-inline'");
   $response->headers->push_header('connection' => 'close');
 
 
