@@ -1,6 +1,6 @@
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-06-06
+# @version 2021-06-20
 # @package Plack Twiggy REST API
 # @subpackage Product/List.pm
 
@@ -50,6 +50,8 @@ has 'products' => (
     setProduct => 'set',
     getProduct => 'get',
     hasProduct => 'exists',
+    iterateProducts => 'kv',
+    clearProducts => 'clear',
     getProductCount => 'count',
   },
 );
@@ -60,10 +62,13 @@ has 'products' => (
 #Administration Methods
 
 
-sub setList
+sub importList
 {
   my ($self, $rhshlist) = @_ ;
 
+
+  #Clear old Data
+  $self->clearProducts();
 
   if(scalar(keys %$rhshlist) > 0)
   {
@@ -75,7 +80,7 @@ sub setList
     {
       $prod = Product->new($rhshlist->{$slnknm});
 
-      $self->products->set($slnknm, $prod);
+      $self->setProduct($slnknm, $prod);
     } #for $slnknm (keys %$rhshlist)
   } #if(scalar(keys %$rhshlist) > 0)
 
@@ -86,23 +91,23 @@ sub setList
 #Consultation Methods
 
 
-sub getList
+sub exportList
 {
   my $self = $_[0];
   my $rhshlist = {};
 
 
-  unless($self->products->is_empty())
+  if($self->getProductCount() != 0)
   {
     my $prod = undef;
 
 
-    for $prod ($self->products->kv)
+    for $prod ($self->iterateProducts())
     {
       $rhshlist->{$prod->[0]} = {'name' => $prod->[1]->name, 'link_name' => $prod->[1]->link_name
         , 'image' => $prod->[1]->image};
     }
-  } #unless($self->products->is_empty())
+  } #if($self->getProductCount() != 0)
 
 
   return $rhshlist;
