@@ -271,7 +271,7 @@ sub dispatchErrorResponse
 my $smaindir = path(__FILE__)->parent->parent->stringify;
 
 
-print "env dmp:\n" . dump %ENV; print "\n";
+print STDERR "env dmp:\n" . dump %ENV; print "\n";
 
 
 my $app = sub {
