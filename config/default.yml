@@ -1,0 +1,14 @@
+---
+
+# @author Bodo (Hugo) Barwich
+# @version 2021-08-08
+# @package Plack Twiggy REST API
+# @subpackage /config/default.yml
+
+# This is the Default Service Configuration
+# This will be loaded when no customized Configuration exists
+#
+
+project: 'Plack Twiggy - API'
+vmainpath: '/'
+maindirectory: ''
