@@ -1,11 +1,7 @@
 #!/usr/bin/perl
 
 # @author Bodo (Hugo) Barwich
-<<<<<<< HEAD
 # @version 2021-08-15
-=======
-# @version 2021-08-08
->>>>>>> branch 'master' of https://github.com/bodo-hugo-barwich/plack-pwa-api
 # @package Plack Twiggy REST API
 # @subpackage /scripts/web.psgi
 
