@@ -104,26 +104,6 @@ sub  loadConfiguration
   return $rscnf;
 }
 
-sub printHomePage
-{
-  my ($cnf, $req, $wtr) = @_ ;
-
-
-  #------------------------
-  #Project Description
-
-  my $rhshrspdata = {'title' => $cnf->{'project'}
-    , 'statuscode' => 200
-    , 'page' => 'Home'
-    , 'description' => 'Product Data API for the Plack Twiggy PWA Project'
-  };
-
-
-  $wtr->write(encode_json($rhshrspdata));
-
-  $wtr->close();
-}
-
 sub dispatchHomePage
 {
   my ($cnf, $req, $res) = @_ ;
