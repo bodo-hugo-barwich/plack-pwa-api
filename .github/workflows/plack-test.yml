@@ -1,0 +1,50 @@
+# This is a basic workflow to help you get started with Actions
+#Run configured Tests from the Test Directory
+name: Automated Plack::Test
+
+# Controls when the action will run. Triggers the workflow pull request
+# events but only for the master branch
+on:
+  pull_request:
+    # Pull Request events on master branch
+    branches: 
+      - master
+  workflow_dispatch:
+     branches:    
+      - master  
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # Configure and Run the Testing Job
+  testing:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-20.04
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+       # List all installed Perl Libraries
+      - name: List all installed Perl Libraries
+        run: dpkg --get-selections | grep -i perl | sort
+        
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        
+      # Install Perl Libraries with 'cpanm' checks cpanfile completeness
+      - name: Install Perl Libraries with 'cpanm'
+        run: cpanm -vn --installdeps .
+
+      - name: Starting Test Sequences
+        run: echo "Starting Test Sequences"
+
+      - name: Listing Directory Contents
+        run: pwd && ls -lah
+        
+      # Test the Controller Functionality
+      - name: Run the Controller Tests with 'Plack::Test'
+        run: t/test_controller.t
+
+      # Runs a set of commands using the runners shell
+      #- name: Run a multi-line script
+      #  run: |
+      #    echo Add other actions to build,
+      #    echo test, and deploy your project.
