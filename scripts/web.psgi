@@ -29,8 +29,8 @@ BEGIN
   use lib "$FindBin::Bin/../lib";
 }
 
-use warnings;
 use strict;
+use warnings;
 
 use Path::Tiny;
 
@@ -161,30 +161,31 @@ sub dispatchProductList
   print STDERR "res dmp:\n", dump $res;
   print STDERR "\n";
 
-  unless(defined $req->env->{'psgix.io'})
-  {
+#  unless(defined $req->env->{'psgix.io'})
+#  {
     #------------------------
     #Error Response
     #Extension psgix.io is required
 
-    my $rhshrspdata = {'title' => $cnf->{'project'} . ' - Error'
-      , 'statuscode' => 501
-      , 'errormessage' => 'Extension missing!'
-      , 'errordescription' => 'This server does not support psgix.io extension.'
-    };
+#    my $rhshrspdata = {'title' => $cnf->{'project'} . ' - Error'
+#      , 'statuscode' => 501
+#      , 'page' => 'none'
+#      , 'errormessage' => 'Extension missing'
+#      , 'errordescription' => 'This server does not support psgix.io extension.'
+#    };
 
 
-    $stmnow  = strftime('%F %T', localtime);
+#    $stmnow  = strftime('%F %T', localtime);
 
-    print STDERR "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - Extension missing: "
-      , $rhshrspdata->{'errordescription'};
+#    print STDERR "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - Extension missing: "
+#      , $rhshrspdata->{'errordescription'}. "\n";
 
-    $res->code(501);
-    $res->content(encode_json($rhshrspdata));
+#    $res->code(501);
+#    $res->content(encode_json($rhshrspdata));
 
 
-    return $res->finalize;
-  } #unless(defined $req->env->{'psgix.io'})
+#    return $res->finalize;
+#  } #unless(defined $req->env->{'psgix.io'})
 
 
   eval
@@ -214,7 +215,8 @@ sub dispatchProductList
 
     my $rhshrspdata = {'title' => $cnf->{'project'} . ' - Exception'
       , 'statuscode' => 500
-      , 'errormessage' => 'An Exception has occurred!'
+      , 'page' => 'none'
+      , 'errormessage' => 'An Exception has occurred'
       , 'errordescription' => 'Plack Twiggy - Exception: ' . $@
     };
 
@@ -250,6 +252,7 @@ sub dispatchErrorResponse
 
   my $rhshrspdata = {'title' => $cnf->{'project'} . ' - ' . $rhshrsdata->{'title'}
     , 'statuscode' => $rhshrsdata->{'status'}
+    , 'page' => 'none'
     , 'errormessage' => $rhshrsdata->{'message'}
     , 'errordescription' => $rhshrsdata->{'description'}
   };
@@ -310,37 +313,7 @@ my $app = sub {
     #------------------------
     #Dispatch Home Page
 
-    return sub {
-      my $responder = shift;
-      my $writer = $responder->([ 200, $response->headers->psgi_flatten() ]);
-      my $timer;
-
-      my $fprintHomePage = \&printHomePage;
-
-       $timer = AnyEvent->timer(
-          after => 0,
-          cb => sub {
-            undef $timer; # cancel circular-ref
-            $fprintHomePage->($config, $request, $writer);
-       });  #$timer
-    };  #return sub
-  }
-  elsif($request->path_info() eq '/'
-    || $request->path_info() eq '')
-  {
-    #------------------------
-    #Project Description
-
-    my $rhshrspdata = {'title' => $config->{'project'}
-      , 'statuscode' => 200
-      , 'message' => 'Index'
-      , 'description' => 'Product Data API for the Plack Twiggy PWA Project'
-    };
-
-
-    $response->code(200);
-    $response->content(encode_json($rhshrspdata));
-
+    return dispatchHomePage($config, $request, $response);
   }
   else  #Any other URL: Not Found Error
   {
@@ -349,7 +322,8 @@ my $app = sub {
 
     my $rhshrspdata = {'title' => $config->{'project'} . ' - Error'
       , 'statuscode' => 404
-      , 'errormessage' => 'Not Found.'
+      , 'page' => 'none'
+      , 'errormessage' => 'Not Found'
       , 'errordescription' => 'The Resource does not exist.'
     };
 
