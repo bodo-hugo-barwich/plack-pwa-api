@@ -12,6 +12,7 @@
 # Requirements:
 # - The Perl Module "Path::Tiny" must be installed
 # - The Perl Module "JSON" must be installed
+# - The Perl Module "YAML" must be installed
 # - The Perl Module "Plack" must be installed
 # - The Perl Module "Twiggy" must be installed
 #
