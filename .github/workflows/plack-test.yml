@@ -31,7 +31,9 @@ jobs:
         
       # Install Perl Libraries with 'cpanm' checks cpanfile completeness
       - name: Install Perl Libraries with 'cpanm'
-        run: bin/cpanm -vn --installdeps .
+        run: |
+          bin/cpanm --local-lib=~/perl5 local::lib && eval $(perl -Mlocal::lib -I ~/perl5/lib/perl5/)
+          bin/cpanm -vn --installdeps .
 
       - name: Starting Test Sequences
         run: echo "Starting Test Sequences"
