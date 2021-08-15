@@ -7,6 +7,8 @@ requires 'HTTP::Parser::XS';
 requires 'Twiggy';
 requires 'JSON::XS';
 requires 'JSON';
+requires 'YAML::XS';
+requires 'YAML';
 requires 'Digest::MD5';
 requires 'Data::Dump';
 requires 'Path::Tiny';
