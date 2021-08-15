@@ -1,3 +1,12 @@
+<div>
+    <a target="_blank" rel="noopener noreferrer" href="https://github.com/bodo-hugo-barwich/plack-pwa-api/actions/workflows/plack-test.yml">
+    	<img src="https://github.com/bodo-hugo-barwich/plack-pwa-api/actions/workflows/plack-test.yml/badge.svg" alt="Automated Plack::Test" style="max-width:100%;">
+    </a>
+    <!--
+    [![Automated Plack::Test](https://github.com/bodo-hugo-barwich/plack-pwa-api/actions/workflows/plack-test.yml/badge.svg)](https://github.com/bodo-hugo-barwich/plack-pwa-api/actions/workflows/plack-test.yml)
+    -->
+</div>
+
 # NAME
 
 Plack Twiggy Product REST API
