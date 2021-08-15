@@ -37,3 +37,21 @@ The **API Data Structures** are implemented with the `Moose` library for **OO-De
     To run the installation call the `cpanm` Command within the project directory:
 
             cpanm -vn --installdeps .
+
+# EXECUTION
+
+- plackup
+
+    The Site can be launched using the `plackup` Script as seen in the `package.json`.
+    To launch the Site call the `plackup` Command within the project directory:
+
+            plackup --server Twiggy --port 3000 scripts/web.psgi
+
+# IMPLEMENTATION
+
+- `AnyEvent::Future`
+
+    To not block the server main thread too long and to enable asynchronous request processing
+    the `AnyEvent` feature of `Twiggy` as `AnyEvent::Future` is used.
+    Each _Product Data Request_ produces a future that the _Product Data Factory_ manages
+    to build a complete _Product Data List_
