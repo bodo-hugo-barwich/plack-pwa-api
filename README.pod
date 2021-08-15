@@ -26,9 +26,35 @@ The B<API Data Structures> are implemented with the C<Moose> library for B<OO-De
 
 =item cpanminus
 
-The C<cpanm> Script will install the dependencies on local user level as they are found in the C<cpanfile>.
+The C<cpanm> Script will install the dependencies on local user level as they are found in the F<cpanfile>.
 To run the installation call the C<cpanm> Command within the project directory:
 
 	cpanm -vn --installdeps .
+
+=back
+
+=head1 EXECUTION
+
+=over
+
+=item plackup
+
+The Site can be launched using the C<plackup> Script as seen in the F<package.json>.
+To launch the Site call the C<plackup> Command within the project directory:
+
+	plackup --server Twiggy --port 3000 scripts/web.psgi
+
+=back
+
+=head1 IMPLEMENTATION
+
+=over
+
+=item C<AnyEvent::Future>
+
+To not block the server main thread too long and to enable asynchronous request processing
+the C<AnyEvent> feature of C<Twiggy> as C<AnyEvent::Future> is used.
+Each I<Product Data Request> produces a future that the I<Product Data Factory> manages
+to build a complete I<Product Data List>
 
 =back
