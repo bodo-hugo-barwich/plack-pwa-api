@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-08-15
+# @version 2021-08-16
 # @package Plack Twiggy REST API
 # @subpackage /scripts/web.psgi
 
@@ -327,7 +327,7 @@ my $app = sub {
 
 builder {
   enable "Plack::Middleware::AccessLog::Timed"
-    , format => '%{HTTP_X_FORWARDED_PROTO}i:%V (%h,%{HTTP_X_FORWARDED_FOR}i) %{%F:%T}t [%D] '
+    , format => '%{X-FORWARDED-PROTO}i:%V (%h,%{X-FORWARDED-FOR}i) %{%F:%T}t [%D] '
       . '"Mime:%{Content-Type}o" "%r" %>s %b "%{Referer}i" "%{User-agent}i"';
   #Route for the favicon.ico
   enable "Static", path => qr#\.(ico|png)#, root => $smaindir . '/images';
