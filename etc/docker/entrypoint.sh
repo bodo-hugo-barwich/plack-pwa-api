@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# @author Bodo (Hugo) Barwich
+# @version 2021-09-02
+# @package Plack Twiggy REST API
+# @subpackage entrypoint.sh
 
 
 set -e
@@ -142,7 +146,7 @@ if [ "$1" = "plackup" ]; then
     echo "Running Pre-Caching ..."
 
     date +"%s" > log/web_cache_build_$(date +"%F").log
-    scripts/build_cache.pl 2>&1 >> log/web_cpanm_install_$(date +"%F").log
+    scripts/build_cache.pl 2>&1 >> log/web_cache_build_$(date +"%F").log
     cachers=$?
     date +"%s" >> log/web_cache_build_$(date +"%F").log
 
