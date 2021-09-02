@@ -129,6 +129,27 @@ if [ "$1" = "plackup" ]; then
   fi  #if [ $icpanm -eq 1 ]; then
 
 
+  #Checking File Cache
+
+  icache=`ls -l cache | wc -l`
+
+  if [ -z "$icache" ]; then
+    icache=0
+  fi
+
+  if [ $icache -eq 0 ]; then
+    #Run Cache Population
+    echo "Running Pre-Caching ..."
+
+    date +"%s" > log/web_cache_build_$(date +"%F").log
+    scripts/build_cache.pl 2>&1 >> log/web_cpanm_install_$(date +"%F").log
+    cachers=$?
+    date +"%s" >> log/web_cache_build_$(date +"%F").log
+
+    echo "Pre-Caching finished with [$cachers]"
+  fi  #if [ $icache -eq 0 ]; then
+
+
   echo "Service '$1': Launching ..."
 
   #Executing the Plack Application
