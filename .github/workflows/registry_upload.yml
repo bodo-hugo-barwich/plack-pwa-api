@@ -16,11 +16,11 @@ jobs:
     steps:
       - name: Check the Pull Request 
         if: github.event.pull_request != null 
-        run: echo ${{ github.event_name }} - PR ${{ github.event.pull_request.number }} has been merged
+        run: echo "Event '${{ github.event_name }}' - PR ${{ github.event.pull_request.number }} has been merged"
       
       - name: Check for Manual Launch 
         if: github.event_name == 'workflow_dispatch'
-        run: echo ${{ github.event_name }} - Manual Push to Registry
+        run: echo "Event '${{ github.event_name }}' - Manual Push to Registry" 
       
       - name: Checkout
         uses: actions/checkout@v2
