@@ -18,7 +18,8 @@ ADD ./ /home/plack-pwa
 RUN chown pwa1_web:web /home/plack-pwa/perl5 -R || true
 USER pwa1_web
 RUN mkdir -p /home/plack-pwa/perl5 \
-  && mkdir -p /home/plack-pwa/log
+  && mkdir -p /home/plack-pwa/log \
+  && mkdir -p /home/plack-pwa/cache
 VOLUME /home/plack-pwa/cache
 WORKDIR /home/plack-pwa
 ENTRYPOINT ["entrypoint.sh"]
