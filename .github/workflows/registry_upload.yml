@@ -11,11 +11,11 @@ on:
 jobs:
   push_image:
     # this job will only run if the PR has been merged
-    if: github.event.pull_request.merged == true
+    if: (github.event.pull_request.merged == true) || (github.event_name == 'workflow_dispatch') 
     runs-on: ubuntu-20.04
     steps:
       - run: |
-          echo PR ${{ github.event.pull_request.number }} has been merged
+          echo ${{ github.event_name }} - PR ${{ github.event.pull_request.number }} has been merged
       
       - name: Checkout
         uses: actions/checkout@v2
