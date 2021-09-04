@@ -24,7 +24,8 @@ jobs:
     steps:
        # List all installed Perl Libraries
       - name: List all installed Perl Libraries
-        run: dpkg --get-selections | grep -i perl | sort
+        run: |
+          dpkg --get-selections | grep -i perl | sort
         
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
