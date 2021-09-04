@@ -7,6 +7,7 @@ node_modules
 .cpanm
 blib
 perl5
+log
 
 #Project Files
 .project
