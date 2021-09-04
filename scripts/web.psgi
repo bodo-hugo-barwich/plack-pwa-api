@@ -55,9 +55,9 @@ use Product::Factory;
 
 sub  loadConfiguration
 {
-  my ($smndir, $rqenv) = @_ ;
+  my $smndir = $_[0];
   my $scnfdir = $smndir . '/config/';
-  my $shost = $rqenv->{'HTTP_HOST'};
+  my $scomp = $ENV{'COMPONENT'} || 'default';
   my $splkenv = $ENV{'PLACK_ENV'} || 'deployment';
   my $scnfhstnm = '';
   my $scnfflnm = '';
@@ -65,8 +65,7 @@ sub  loadConfiguration
   my $rscnf = undef;
 
 
-  $shost =~ s/:[0-9]+//;
-  $scnfhstnm = $shost;
+  $scnfhstnm = $scomp;
   $scnfhstnm =~ tr/\./-/;
 
   $scnfdir = $smndir . '/' unless(-d $scnfdir);
@@ -90,14 +89,14 @@ sub  loadConfiguration
     {
       $rscnf = undef;
 
-      print STDERR "Project '$shost': Configuration could not be loaded!\n"
+      print STDERR "Project '$scomp': Configuration could not be loaded!\n"
         , "Configuration File '${scnfdir}${scnfflnm}': Read Open failed.\n"
         , "File '${scnfdir}${scnfflnm}' - Message: '", $@, "'\n";
     } #if($@)
   }
   else  #Configuration File does not exist
   {
-    print STDERR "Project '$shost': Configuration could not be loaded!\n"
+    print STDERR "Project '$scomp': Configuration could not be loaded!\n"
       , "Configuration File '${scnfdir}${scnfflnm}': File does not exist.\n";
   } #if(-f $scnfdir . $scnfflnm)
 
@@ -253,14 +252,15 @@ sub dispatchErrorResponse
 
 
 my $smaindir = path(__FILE__)->parent->parent->stringify;
+my $config = loadConfiguration($smaindir);
 
 
-print STDERR "env dmp:\n" . dump %ENV; print "\n";
+print STDERR "env dmp:\n" . dump %ENV;
+print STDERR "\n";
 
 
 my $app = sub {
   my $env = shift;
-  my $config = loadConfiguration($smaindir, $env);
   my $request = Plack::Request->new($env);
   my $response = $request->new_response(200);
   my $headers = undef;
