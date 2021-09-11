@@ -167,8 +167,8 @@ sub buildProductList
   {
     foreach $rslookup (@arrrslookup)
     {
-      print "lkp dmp:\n" . dump($rslookup);
-      print "\n";
+#      print "lkp dmp:\n" . dump($rslookup);
+#      print "\n";
 
       if(defined $rslookup)
       {
