@@ -150,7 +150,7 @@ sub buildProductList
           , 'errorcode' => 2, 'errormessage' => 'Cache Key not found!', 'exception' => $rhshrequest->{'error'}});
 
       } #if(defined $rarrurls)
-    });
+    }); #$self->_getAsyncProductList(@_[1..$#_])
 
 
   my @arrrslookup = $buildwatch->get;
@@ -177,7 +177,8 @@ sub buildProductList
         $rhshproduct = $arrrsproduct[2];
 
 
-        if(defined ref $rhshrequest
+        if(defined $rhshproduct
+          && defined ref $rhshrequest
           && ref($rhshrequest) eq 'HASH')
         {
           $rhshdata->{$rhshrequest->{'link'}} = {};
