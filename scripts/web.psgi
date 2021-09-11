@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-08-16
+# @version 2021-09-04
 # @package Plack Twiggy REST API
 # @subpackage /scripts/web.psgi
 
@@ -74,6 +74,8 @@ sub  loadConfiguration
 
   $scnfflnm = $scnfhstnm . $scnfext unless(-f $scnfdir . $scnfflnm);
 
+  $scnfflnm = 'default-' . $splkenv . $scnfext unless(-f $scnfdir . $scnfflnm);
+
   $scnfflnm = 'default' . $scnfext unless(-f $scnfdir . $scnfflnm);
 
   if(-f $scnfdir . $scnfflnm)
@@ -82,7 +84,9 @@ sub  loadConfiguration
     {
       $rscnf = YAML::LoadFile($scnfdir . $scnfflnm);
 
+      $rscnf->{'component'} = $scomp;
       $rscnf->{'maindirectory'} = $smndir;
+      $rscnf->{'configfile'} = $scnfdir . $scnfflnm;
     };
 
     if($@)
@@ -193,21 +197,46 @@ sub dispatchProductList
     #Error Response
     #An Exception has occurred
 
-    my $rhshrspdata = {'title' => $cnf->{'project'} . ' - Exception'
-      , 'statuscode' => 500
-      , 'page' => 'none'
-      , 'errormessage' => 'An Exception has occurred'
-      , 'errordescription' => 'Plack Twiggy - Exception: ' . $@
-    };
+    my $rhshex = $@ ;
 
+
+    print "ex dmp:\n" . dump $rhshex ; print "\n";
+
+    $rhshex = {'exception' => {'msg' => $rhshex}} unless(ref $rhshex);
+    $rhshex->{'errorcode'} = 1 unless(defined $rhshex->{'errorcode'});
 
     $stmnow  = strftime('%F %T', localtime);
 
-    print STDERR "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - Exception: ", $@ ;
+    print STDERR "$stmnow : Request '", $req->env->{'REQUEST_URI'}, "' - Exception: ", $rhshex->{'exception'}->{'msg'}, "\n" ;
 
-    $res->code(500);
-    $res->content(encode_json($rhshrspdata));
+    if($rhshex->{'errorcode'} == 2)
+    {
+      #Cache Not Found Exception
 
+      my $rhshrspdata = {'title' => $cnf->{'project'} . ' - Error'
+        , 'statuscode' => 404
+        , 'page' => 'none'
+        , 'errormessage' => 'Not Found'
+        , 'errordescription' => 'The Resource does not exist.'
+      };
+
+
+      $res->code(404);
+      $res->content(encode_json($rhshrspdata));
+    }
+    else  #Any other Exception
+    {
+      my $rhshrspdata = {'title' => $cnf->{'project'} . ' - Exception'
+        , 'statuscode' => 500
+        , 'page' => 'none'
+        , 'errormessage' => 'An Exception has occurred'
+        , 'errordescription' => 'Plack Twiggy - Exception: ' . $rhshex->{'exception'}->{'msg'}
+      };
+
+
+      $res->code(500);
+      $res->content(encode_json($rhshrspdata));
+    } #if(d$rhshex->{'errorcode'} == 2)
   } #if($@)
 
 
@@ -251,9 +280,23 @@ sub dispatchErrorResponse
 #Executing Section
 
 
+my $scomp = $ENV{'COMPONENT'} || 'default';
 my $smaindir = path(__FILE__)->parent->parent->stringify;
 my $config = loadConfiguration($smaindir);
 
+
+$scomp .= ' - ';
+$scomp .= $ENV{'PLACK_ENV'} || 'deployment';
+
+if(defined $config)
+{
+  print STDERR "Server '", $config->{'component'}, " / ", $scomp, "' - Configuration: File '", $config->{'configfile'} , "'\n";
+  print STDERR "Server '", $config->{'component'}, " / ", $scomp, "' - Configuration: File loaded.\n";
+}
+else  #Configuration Loading failed
+{
+  print STDERR "Server '$scomp' - Configuration : Loading failed!\n";
+} #if(defined $config)
 
 print STDERR "env dmp:\n" . dump %ENV;
 print STDERR "\n";

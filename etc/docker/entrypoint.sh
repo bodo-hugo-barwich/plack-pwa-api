@@ -135,15 +135,22 @@ if [ "$1" = "plackup" ]; then
 
   #Checking File Cache
 
-  icache=`ls -l cache | wc -l`
+  icache=`find cache -name "*.json" | wc -l`
 
   if [ -z "$icache" ]; then
     icache=0
   fi
 
-  if [ $icache -eq 0 ]; then
+	#Cache Directory will contain at least the '.keep' file
+  if [ $icache -le 1 ]; then
     #Run Cache Population
     echo "Running Pre-Caching ..."
+
+		if [ ! -d cache ]; then
+		  echo "Cache Directory: creating ..."
+
+		  mkdir cache
+		fi  #if [ ! -d cache ]; then
 
     date +"%s" > log/web_cache_build_$(date +"%F").log
     scripts/build_cache.pl 2>&1 >> log/web_cache_build_$(date +"%F").log
@@ -151,7 +158,7 @@ if [ "$1" = "plackup" ]; then
     date +"%s" >> log/web_cache_build_$(date +"%F").log
 
     echo "Pre-Caching finished with [$cachers]"
-  fi  #if [ $icache -eq 0 ]; then
+  fi  #if [ $icache -le 1 ]; then
 
 
   echo "Service '$1': Launching ..."

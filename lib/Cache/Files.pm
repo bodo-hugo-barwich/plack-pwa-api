@@ -1,6 +1,6 @@
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-06-12
+# @version 2021-09-04
 # @package Plack Twiggy REST API
 # @subpackage Cache/Files.pm
 
@@ -122,6 +122,7 @@ sub _readAsyncCache
 
     $cachefile = path($self->cachemaindirectory, '/' . substr($skeymd5, 0, 1)
       , '/' . substr($skeymd5, 0, 2) . '/', $skeymd5 . '.json');
+    $rhshrequest->{'file'} = $cachefile->stringify;
 
     if($cachefile->exists)
     {
@@ -143,12 +144,22 @@ sub _readAsyncCache
     }
     else  #The Cache Key does not exist
     {
+      my $smsg = 'Cache Key does not exist.';
+
+
+      $rhshrequest->{'error'} = {'msg' => $smsg};
+
+      #Mark Request as done
       $readwatch->done($scachekey, $rhshrequest, $sdata);
+
+#      $readwatch->fail({'key' => $scachekey, 'operation' => 'Get', 'file' => $cachefile->stringify
+#        , 'errorcode' => 2, 'errormessage' => 'Cache Key not found!', 'exception' => {'msg' => $smsg} });
     } #if($cachefile->exists)
   }
   else  #Cache Key missing
   {
     my $smsg = 'Cache Key is empty or not set.';
+
 
     $readwatch->fail({'key' => 'undefined', 'operation' => 'Get', 'file' => ''
       , 'errorcode' => 3, 'errormessage' => 'Cache Key missing!', 'exception' => {'msg' => $smsg} });
