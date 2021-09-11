@@ -108,17 +108,21 @@ sub buildProductList
 {
   my $self = $_[0];
   my $buildwatch = undef;
+  my $rhshrequest = undef;
   my $rhshdata = {};
 
 
   $buildwatch = $self->_getAsyncProductList(@_[1..$#_])
     ->then_with_f(sub {
-      my ( $f_cond, @arrrslist ) = @_;
-      my $rarrurls = $arrrslist[2];
+      my ( $f_cond, @arrresult ) = @_;
+      my $rarrurls = $arrresult[2];
 
 
-      #print "arr lst dmp:\n" . dump(@arrrslist);
-      #print "\n";
+      $rhshrequest = $arrresult[1];
+
+#      print "f_cond: '$f_cond'\n";
+#      print "arr rs dmp:\n" . dump(@arrresult);
+#      print "\n";
 
       if(defined $rarrurls)
       {
@@ -138,55 +142,68 @@ sub buildProductList
 
         return $self->_lookupAsyncProductList($rarrurls);
       }
-      else
+      else  #Product List was not found
       {
-        return $f_cond;
+        #The missing Product List is fatal
+
+        return $f_cond->then_fail({'key' => $rhshrequest->{'key'}, 'operation' => 'Get', 'file' => $rhshrequest->{'file'}
+          , 'errorcode' => 2, 'errormessage' => 'Cache Key not found!', 'exception' => $rhshrequest->{'error'}});
+
       } #if(defined $rarrurls)
-    });
+    }); #$self->_getAsyncProductList(@_[1..$#_])
 
 
   my @arrrslookup = $buildwatch->get;
   my $rslookup = undef;
   my @arrrsproduct = undef;
-  my $rhshrequest = undef;
   my $rhshproduct = undef;
 
 
-  #print "arr lkp dmp:\n" . dump(@arrrslookup);
-  #print "\n";
+#  print "arr lkp (cnt: '", scalar(@arrrslookup), "') join: '",  join('|', @arrrslookup), "'\n";
+#  print "arr lkp dmp:\n" . dump(@arrrslookup);
+#  print "\n";
 
-  foreach $rslookup (@arrrslookup)
+  if(scalar(@arrrslookup) > 0)
   {
-    @arrrsproduct = $rslookup->result;
-    $rhshrequest = $arrrsproduct[1];
-    $rhshproduct = $arrrsproduct[2];
-
-
-    if(defined ref $rhshrequest
-      && ref($rhshrequest) eq 'HASH')
+    foreach $rslookup (@arrrslookup)
     {
-      $rhshdata->{$rhshrequest->{'link'}} = {};
+#      print "lkp dmp:\n" . dump($rslookup);
+#      print "\n";
 
-      if(defined $rhshproduct)
+      if(defined $rslookup)
       {
-        if(ref($rhshproduct) eq '')
+        @arrrsproduct = $rslookup->result;
+        $rhshrequest = $arrrsproduct[1];
+        $rhshproduct = $arrrsproduct[2];
+
+
+        if(defined $rhshproduct
+          && defined ref $rhshrequest
+          && ref($rhshrequest) eq 'HASH')
         {
-          if($rhshproduct ne '')
-          {
-            $rhshproduct = JSON::decode_json($rhshproduct) ;
-          }
-          else
-          {
-            #Create an empty Hash
-            $rhshproduct = {};
-          }
-        } #if(ref($rhshproduct) eq '')
+          $rhshdata->{$rhshrequest->{'link'}} = {};
 
-        $rhshdata->{$rhshrequest->{'link'}} = $rhshproduct;
-      } #if(defined $rhshproduct)
-    } #if(defined ref $rhshrequest && ref($rhshrequest) eq 'HASH')
-  } #foreach $rarrrsproduct (@arrrslookup)
+          if(defined $rhshproduct)
+          {
+            if(ref($rhshproduct) eq '')
+            {
+              if($rhshproduct ne '')
+              {
+                $rhshproduct = JSON::decode_json($rhshproduct) ;
+              }
+              else
+              {
+                #Create an empty Hash
+                $rhshproduct = {};
+              }
+            } #if(ref($rhshproduct) eq '')
 
+            $rhshdata->{$rhshrequest->{'link'}} = $rhshproduct;
+          } #if(defined $rhshproduct)
+        } #if(defined ref $rhshrequest && ref($rhshrequest) eq 'HASH')
+      } #if(defined $rslookup)
+    } #foreach $rarrrsproduct (@arrrslookup)
+  } #if(scalar(@arrrslookup) > 0)
 
   #Import Data Hash
   $self->list->importList($rhshdata);
@@ -272,7 +289,7 @@ sub _getAsyncProduct
   if($sprodurl ne '')
   {
     my %hshprodreq = ('key' => Product::Factory::PRODUCTKEY. '_' . $sprodurl
-      , 'link' => $sprodurl);
+      , 'link' => $sprodurl, 'operation' => 'Get');
 
 
     if(defined $self->cache)
@@ -289,7 +306,7 @@ sub _getAsyncProduct
   {
     my $smsg = 'Product Link is empty or not set.';
 
-    $productwatch = AnyEvent::Future->fail({'key' => 'undefined', 'operation' => 'Lookup', 'file' => ''
+    $productwatch = AnyEvent::Future->fail({'key' => 'undefined', 'operation' => 'Get', 'file' => ''
       , 'errorcode' => 3, 'errormessage' => 'Product Link missing!', 'exception' => {'msg' => $smsg} });
   } #if($sprodurl ne '')
 
@@ -307,7 +324,8 @@ sub _getAsyncProductList
   $icount = -1 unless(defined $icount);
   $ioffset = 0 unless(defined $ioffset);
 
-  %hshlistreq = ('key' => Product::Factory::URLLISTKEY . '_' . $icount . '_' . $ioffset);
+  %hshlistreq = ('key' => Product::Factory::URLLISTKEY . '_' . $icount . '_' . $ioffset
+    , 'operation' => 'Get');
 
   if(defined $self->cache)
   {

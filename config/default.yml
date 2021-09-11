@@ -9,6 +9,9 @@
 # This will be loaded when no customized Configuration exists
 #
 
+
+component: 'unknown'
 project: 'Plack Twiggy - API'
 vmainpath: '/'
 maindirectory: ''
+configfile: ''
