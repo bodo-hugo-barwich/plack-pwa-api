@@ -120,9 +120,9 @@ sub buildProductList
 
       $rhshrequest = $arrresult[1];
 
-      print "f_cond: '$f_cond'\n";
-      print "arr rs dmp:\n" . dump(@arrresult);
-      print "\n";
+#      print "f_cond: '$f_cond'\n";
+#      print "arr rs dmp:\n" . dump(@arrresult);
+#      print "\n";
 
       if(defined $rarrurls)
       {
@@ -159,9 +159,9 @@ sub buildProductList
   my $rhshproduct = undef;
 
 
-  print "arr lkp (cnt: '", scalar(@arrrslookup), "') join: '",  join('|', @arrrslookup), "'\n";
-  print "arr lkp dmp:\n" . dump(@arrrslookup);
-  print "\n";
+#  print "arr lkp (cnt: '", scalar(@arrrslookup), "') join: '",  join('|', @arrrslookup), "'\n";
+#  print "arr lkp dmp:\n" . dump(@arrrslookup);
+#  print "\n";
 
   if(scalar(@arrrslookup) > 0)
   {

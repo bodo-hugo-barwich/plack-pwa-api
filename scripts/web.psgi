@@ -200,7 +200,7 @@ sub dispatchProductList
     my $rhshex = $@ ;
 
 
-    print "ex dmp:\n" . dump $rhshex ; print "\n";
+    #print "ex dmp:\n" . dump $rhshex ; print "\n";
 
     $rhshex = {'exception' => {'msg' => $rhshex}} unless(ref $rhshex);
     $rhshex->{'errorcode'} = 1 unless(defined $rhshex->{'errorcode'});
