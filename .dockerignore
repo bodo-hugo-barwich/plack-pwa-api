@@ -1,2 +1,8 @@
 #exclude git from the build context
 .git
+
+#Project Files
+.project
+
+#exclude the database storage directory
+data

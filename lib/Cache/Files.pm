@@ -1,6 +1,6 @@
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-09-04
+# @version 2021-09-12
 # @package Plack Twiggy REST API
 # @subpackage Cache/Files.pm
 
@@ -138,6 +138,8 @@ sub _readAsyncCache
         my $irs = 0 + $! ;
 
 
+        $@ = {'msg' => $@} unless(ref $@);
+
         $readwatch->fail({'key' => $scachekey, 'operation' => 'Get', 'file' => $cachefile->stringify
           , 'errorcode' => $irs, 'errormessage' => $! , 'exception' => $@ });
       } #if($@)
@@ -162,7 +164,7 @@ sub _readAsyncCache
 
 
     $readwatch->fail({'key' => 'undefined', 'operation' => 'Get', 'file' => ''
-      , 'errorcode' => 3, 'errormessage' => 'Cache Key missing!', 'exception' => {'msg' => $smsg} });
+      , 'errorcode' => 3, 'errormessage' => 'Cache Key missing!', 'exception' => {'msg' => $smsg}});
   } #if(defined $scachekey
     # && $scachekey ne '')
 }
