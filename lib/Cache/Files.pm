@@ -205,6 +205,8 @@ sub _writeAsyncCache
       my $irs = 0 + $! ;
 
 
+      $@ = {'msg' => $@} unless(ref $@);
+
       $writewatch->fail({'key' => $scachekey, 'operation' => 'Set', 'file' => $cachefile->stringify
         , 'errorcode' => $irs, 'errormessage' => $! , 'exception' => $@ });
     } #if($@)
@@ -223,6 +225,10 @@ sub _printWatchError
 {
   my $rhsherr = $_[0];
 
+
+  $rhsherr = {'exception' => {'msg' => $rhsherr}} unless(ref $rhsherr);
+  $rhsherr->{'errorcode'} = 1 unless(defined $rhsherr->{'errorcode'});
+  $rhsherr->{'exception'} = {'msg' => $rhsherr->{'exception'}} unless(ref $rhsherr->{'exception'});
 
   print STDERR "Cache '", $rhsherr->{'key'}, "': ", $rhsherr->{'operation'}, " Cache failed with Exception ["
     , $rhsherr->{'errorcode'}, "]: '", $rhsherr->{'errormessage'} , "'\n";
