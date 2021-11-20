@@ -252,7 +252,7 @@ sub saveProductList
 
 	      unless($self->cache->setCache($scachekey, \$surlsjson))
 	      {
-	        print STDERR "Product List ($ioffset / $icount): Cache could not be saved!";
+	        print STDERR "Product List ($ioffset / $icount): Cache '$scachekey' could not be saved!";
 
 	        $irs = 0;
 	      }
@@ -260,7 +260,7 @@ sub saveProductList
 
       if($@)
       {
-        print STDERR "Product List ($ioffset / $icount): Cache could not be saved!";
+        print STDERR "Product List ($ioffset / $icount): Cache '$scachekey' could not be saved!";
 
         $irs = 0;
       } #if($@)
@@ -275,7 +275,7 @@ sub saveProductList
 
 	        unless($self->cache->setCache($scachekey, \$sprodjson))
           {
-	          print STDERR "Product '$sprodurl': Cache could not be saved!";
+	          print STDERR "Product '$sprodurl': Cache '$scachekey' could not be saved!";
 
 	          $irs = 0;
           }
@@ -283,7 +283,7 @@ sub saveProductList
 
       	if($@)
       	{
-	        print STDERR "Product '$sprodurl': Cache could not be saved!";
+	        print STDERR "Product '$sprodurl': Cache '$scachekey' could not be saved!";
 
 	        $irs = 0;
       	}  #if($@)
