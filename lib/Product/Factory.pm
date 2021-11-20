@@ -1,6 +1,6 @@
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-06-20
+# @version 2021-11-20
 # @package Plack Twiggy REST API
 # @subpackage Product/Factory.pm
 
@@ -236,23 +236,57 @@ sub saveProductList
 
       my @arrurls = ();
       my $surlsjson = undef;
+      my $scachekey = undef;
       my $sprodurl = undef;
       my $sprodjson = undef;
 
 
+      $scachekey = Product::Factory::URLLISTKEY . '_' . $icount . '_' . $ioffset;
       @arrurls = keys %$rhshdata if(defined $rhshdata);
 
-      $surlsjson = JSON::encode_json(\@arrurls);
+      $irs = 1;
 
-      $self->cache->setCache(Product::Factory::URLLISTKEY
-        . '_' . $icount . '_' . $ioffset, \$surlsjson);
+      eval
+      {
+	      $surlsjson = JSON::encode_json(\@arrurls);
+
+	      unless($self->cache->setCache($scachekey, \$surlsjson))
+	      {
+	        print STDERR "Product List ($ioffset / $icount): Cache could not be saved!";
+
+	        $irs = 0;
+	      }
+      };  #eval
+
+      if($@)
+      {
+        print STDERR "Product List ($ioffset / $icount): Cache could not be saved!";
+
+        $irs = 0;
+      } #if($@)
 
       foreach $sprodurl (@arrurls)
       {
-        $sprodjson = JSON::encode_json($rhshdata->{$sprodurl});
+      	$scachekey = Product::Factory::PRODUCTKEY . '_' . $sprodurl;
 
-        $self->cache->setCache(Product::Factory::PRODUCTKEY
-          . '_' . $sprodurl, \$sprodjson);
+      	eval
+      	{
+	        $sprodjson = JSON::encode_json($rhshdata->{$sprodurl});
+
+	        unless($self->cache->setCache($scachekey, \$sprodjson))
+          {
+	          print STDERR "Product '$sprodurl': Cache could not be saved!";
+
+	          $irs = 0;
+          }
+      	}; #eval
+
+      	if($@)
+      	{
+	        print STDERR "Product '$sprodurl': Cache could not be saved!";
+
+	        $irs = 0;
+      	}  #if($@)
       } #foreach $sprodurl (@arrurls)
     } #if(defined $self->cache)
   } #if(defined blessed $lstprods && $lstprods->isa('Product::List'))

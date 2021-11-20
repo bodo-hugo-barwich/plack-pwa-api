@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-06-19
+# @version 2021-11-20
 # @package Plack Twiggy REST API
 # @subpackage /scripts/build_cache.pl
 
@@ -90,7 +90,10 @@ use Product::Factory;
 #Executing Section
 
 
+my $ierr = 0;
+
 my $smaindir = path(__FILE__)->parent->parent->stringify;
+my $smodulename = path(__FILE__)->basename;
 
 my $cache = Cache::Files->new($smaindir . '/cache/');
 my $prodfactory = Product::Factory->new($cache);
@@ -117,8 +120,14 @@ $lstprods->setProduct('accusantium'
   , Product->new({'name' => 'Accusantium', 'link_name' => 'accusantium', 'image' => 'coffee9.jpg'}));
 
 #Save the Product List to the Cache
-$prodfactory->saveProductList($lstprods, -1, 0);
+unless($prodfactory->saveProductList($lstprods, -1, 0))
+{
+	print STDERR "Module '$smodulename': Product List could not be saved correctly!\n";
+
+	$ierr = 1;
+}
+
+print "Module '$smodulename': Execution finished with [$ierr]\n";
 
 
-
-
+exit $ierr;
