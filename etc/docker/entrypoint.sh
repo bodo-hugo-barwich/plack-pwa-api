@@ -146,11 +146,11 @@ if [ "$1" = "plackup" ]; then
     #Run Cache Population
     echo "Pre-Caching starting ..."
 
-		if [ ! -d cache ]; then
-		  echo "Cache Directory: creating ..."
+    if [ ! -d cache ]; then
+      echo "Cache Directory: creating ..."
 
-		  mkdir cache
-		fi  #if [ ! -d cache ]; then
+      mkdir cache
+    fi  #if [ ! -d cache ]; then
 
     date +"%s" > log/web_cache_build_$(date +"%F").log
     scripts/build_cache.pl 2>&1 >> log/web_cache_build_$(date +"%F").log
