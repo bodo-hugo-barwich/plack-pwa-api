@@ -144,7 +144,7 @@ if [ "$1" = "plackup" ]; then
 	#Cache Directory will contain at least the '.keep' file
   if [ $icache -le 1 ]; then
     #Run Cache Population
-    echo "Running Pre-Caching ..."
+    echo "Pre-Caching starting ..."
 
 		if [ ! -d cache ]; then
 		  echo "Cache Directory: creating ..."
