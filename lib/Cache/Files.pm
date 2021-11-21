@@ -38,7 +38,7 @@ use Digest::MD5 qw(md5_hex);
 use Path::Tiny;
 use AnyEvent::Future;
 
-use Data::Dump qw(dump);
+#use Data::Dump qw(dump);
 
 
 
@@ -91,13 +91,13 @@ sub setAsyncCache
   my $writewatch = AnyEvent::Future->new;
 
 
-  print "'" . (caller(0))[3] . "' - go ...\n";
+  #print "'" . (caller(0))[3] . "' - go ...\n";
 
   $writewatch->on_fail(\&Cache::Files::_printWatchError);
 
   $self->_writeAsyncCache($writewatch, @_[1..$#_]);
 
-  print "'" . (caller(0))[3] . "' - done.\n";
+  #print "'" . (caller(0))[3] . "' - done.\n";
 
 
   return $writewatch;
@@ -163,8 +163,6 @@ sub _readAsyncCache
       #Mark Request as done
       $readwatch->done($scachekey, $rhshrequest, $sdata);
 
-#      $readwatch->fail({'key' => $scachekey, 'operation' => 'Get', 'file' => $cachefile->stringify
-#        , 'errorcode' => 2, 'errormessage' => 'Cache Key not found!', 'exception' => {'msg' => $smsg} });
     } #if($cachefile->exists)
   }
   else  #Cache Key missing
@@ -174,8 +172,7 @@ sub _readAsyncCache
 
     $readwatch->fail({'key' => 'undefined', 'operation' => 'Get', 'file' => ''
       , 'errorcode' => 3, 'errormessage' => 'Cache Key missing!', 'exception' => {'msg' => $smsg}});
-  } #if(defined $scachekey
-    # && $scachekey ne '')
+  } #if(defined $scachekey && $scachekey ne '')
 }
 
 sub _writeAsyncCache
@@ -228,8 +225,7 @@ sub _writeAsyncCache
 
     $writewatch->fail({'key' => 'undefined', 'operation' => 'Set', 'file' => ''
       , 'errorcode' => 3, 'errormessage' => 'Cache Key missing!', 'exception' => {'msg' => $smsg} });
-  } #if(defined $scachekey
-    # && $scachekey ne '')
+  } #if(defined $scachekey && $scachekey ne '')
 }
 
 sub _printWatchError
@@ -246,7 +242,7 @@ sub _printWatchError
   print STDERR "File '", $rhsherr->{'file'}, "' - Exception Message: '"
     , $rhsherr->{'exception'}->{'msg'}  , "'\n";
 
-  print "'" . (caller(0))[3] . "' - done.\n";
+  #print "'" . (caller(0))[3] . "' - done.\n";
 }
 
 

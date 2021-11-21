@@ -42,7 +42,7 @@ use Scalar::Util qw(blessed);
 use JSON;
 use AnyEvent::Future;
 
-use Data::Dump qw(dump);
+#use Data::Dump qw(dump);
 
 use constant URLLISTKEY => 'list-product-urls';
 use constant PRODUCTKEY => 'product';
@@ -316,10 +316,6 @@ sub saveProductList
 sub _printWatchError
 {
   my $rhsherr = $_[0];
-
-
-  print STDERR "wtch err dmp:\n", dump $rhsherr;
-  print STDERR "\n";
 
 
   print STDERR "Product '", $rhsherr->{'key'}, "': ", $rhsherr->{'operation'}, " Product failed with Exception ["
