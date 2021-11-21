@@ -1,6 +1,6 @@
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-06-20
+# @version 2021-11-21
 # @package Plack Twiggy REST API
 # @subpackage Product/Factory.pm
 
@@ -42,7 +42,7 @@ use Scalar::Util qw(blessed);
 use JSON;
 use AnyEvent::Future;
 
-use Data::Dump qw(dump);
+#use Data::Dump qw(dump);
 
 use constant URLLISTKEY => 'list-product-urls';
 use constant PRODUCTKEY => 'product';
@@ -236,23 +236,75 @@ sub saveProductList
 
       my @arrurls = ();
       my $surlsjson = undef;
+      my $scachekey = undef;
       my $sprodurl = undef;
       my $sprodjson = undef;
 
 
+      $scachekey = Product::Factory::URLLISTKEY . '_' . $icount . '_' . $ioffset;
       @arrurls = keys %$rhshdata if(defined $rhshdata);
 
-      $surlsjson = JSON::encode_json(\@arrurls);
+      $irs = 1;
 
-      $self->cache->setCache(Product::Factory::URLLISTKEY
-        . '_' . $icount . '_' . $ioffset, \$surlsjson);
+      eval
+      {
+	      $surlsjson = JSON::encode_json(\@arrurls);
+
+	      unless($self->cache->setCache($scachekey, \$surlsjson))
+	      {
+	        print STDERR "Product List ($ioffset / $icount): Cache '$scachekey' could not be saved!\n";
+
+	        $irs = 0;
+	      }
+      };  #eval
+
+      if($@)
+      {
+        my $ierr = 0 + $! ;
+
+
+        $@ = {'msg' => $@} unless(ref $@);
+        $ierr = -1 if($ierr == 0);
+
+        Product::Factory::_printWatchError({'key' => $scachekey, 'operation' => 'Set', 'file' => ''
+          , 'errorcode' => $ierr, 'errormessage' => $! , 'exception' => $@ });
+
+        print STDERR "Product List ($ioffset / $icount): Cache '$scachekey' could not be saved!\n";
+
+        $irs = 0;
+      } #if($@)
 
       foreach $sprodurl (@arrurls)
       {
-        $sprodjson = JSON::encode_json($rhshdata->{$sprodurl});
+      	$scachekey = Product::Factory::PRODUCTKEY . '_' . $sprodurl;
 
-        $self->cache->setCache(Product::Factory::PRODUCTKEY
-          . '_' . $sprodurl, \$sprodjson);
+      	eval
+      	{
+	        $sprodjson = JSON::encode_json($rhshdata->{$sprodurl});
+
+	        unless($self->cache->setCache($scachekey, \$sprodjson))
+          {
+	          print STDERR "Product '$sprodurl': Cache '$scachekey' could not be saved!\n";
+
+	          $irs = 0;
+          }
+      	}; #eval
+
+      	if($@)
+      	{
+	        my $ierr = 0 + $! ;
+
+
+	        $@ = {'msg' => $@} unless(ref $@);
+	        $ierr = -1 if($ierr == 0);
+
+	        Product::Factory::_printWatchError({'key' => $scachekey, 'operation' => 'Set', 'file' => ''
+            , 'errorcode' => $ierr, 'errormessage' => $! , 'exception' => $@ });
+
+          print STDERR "Product '$sprodurl': Cache '$scachekey' could not be saved!\n";
+
+	        $irs = 0;
+      	}  #if($@)
       } #foreach $sprodurl (@arrurls)
     } #if(defined $self->cache)
   } #if(defined blessed $lstprods && $lstprods->isa('Product::List'))

@@ -1,6 +1,6 @@
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-09-12
+# @version 2021-11-21
 # @package Plack Twiggy REST API
 # @subpackage Cache/Files.pm
 
@@ -37,6 +37,8 @@ use Digest::MD5 qw(md5_hex);
 
 use Path::Tiny;
 use AnyEvent::Future;
+
+#use Data::Dump qw(dump);
 
 
 
@@ -103,7 +105,15 @@ sub setAsyncCache
 
 sub setCache
 {
-  return $_[0]->setAsyncCache(@_[1..$#_])->get;
+  my $writewatch = $_[0]->setAsyncCache(@_[1..$#_]);
+
+
+  #Force synchronous Processing
+  $writewatch->await;
+
+
+  #Communicate Success
+  return $writewatch->is_done;
 }
 
 sub _readAsyncCache
@@ -117,7 +127,6 @@ sub _readAsyncCache
   {
     my $cachefile = undef;
     my $skeymd5 = md5_hex($scachekey);
-    my $irs = 0;
 
 
     $cachefile = path($self->cachemaindirectory, '/' . substr($skeymd5, 0, 1)
@@ -135,13 +144,13 @@ sub _readAsyncCache
 
       if($@)
       {
-        my $irs = 0 + $! ;
+        my $ierr = 0 + $! ;
 
 
         $@ = {'msg' => $@} unless(ref $@);
 
         $readwatch->fail({'key' => $scachekey, 'operation' => 'Get', 'file' => $cachefile->stringify
-          , 'errorcode' => $irs, 'errormessage' => $! , 'exception' => $@ });
+          , 'errorcode' => $ierr, 'errormessage' => $! , 'exception' => $@ });
       } #if($@)
     }
     else  #The Cache Key does not exist
@@ -154,8 +163,6 @@ sub _readAsyncCache
       #Mark Request as done
       $readwatch->done($scachekey, $rhshrequest, $sdata);
 
-#      $readwatch->fail({'key' => $scachekey, 'operation' => 'Get', 'file' => $cachefile->stringify
-#        , 'errorcode' => 2, 'errormessage' => 'Cache Key not found!', 'exception' => {'msg' => $smsg} });
     } #if($cachefile->exists)
   }
   else  #Cache Key missing
@@ -165,8 +172,7 @@ sub _readAsyncCache
 
     $readwatch->fail({'key' => 'undefined', 'operation' => 'Get', 'file' => ''
       , 'errorcode' => 3, 'errormessage' => 'Cache Key missing!', 'exception' => {'msg' => $smsg}});
-  } #if(defined $scachekey
-    # && $scachekey ne '')
+  } #if(defined $scachekey && $scachekey ne '')
 }
 
 sub _writeAsyncCache
@@ -204,13 +210,13 @@ sub _writeAsyncCache
 
     if($@)
     {
-      my $irs = 0 + $! ;
+      my $ierr = 0 + $! ;
 
 
       $@ = {'msg' => $@} unless(ref $@);
 
       $writewatch->fail({'key' => $scachekey, 'operation' => 'Set', 'file' => $cachefile->stringify
-        , 'errorcode' => $irs, 'errormessage' => $! , 'exception' => $@ });
+        , 'errorcode' => $ierr, 'errormessage' => $! , 'exception' => $@ });
     } #if($@)
   }
   else  #Cache Key missing
@@ -219,8 +225,7 @@ sub _writeAsyncCache
 
     $writewatch->fail({'key' => 'undefined', 'operation' => 'Set', 'file' => ''
       , 'errorcode' => 3, 'errormessage' => 'Cache Key missing!', 'exception' => {'msg' => $smsg} });
-  } #if(defined $scachekey
-    # && $scachekey ne '')
+  } #if(defined $scachekey && $scachekey ne '')
 }
 
 sub _printWatchError
@@ -236,6 +241,8 @@ sub _printWatchError
     , $rhsherr->{'errorcode'}, "]: '", $rhsherr->{'errormessage'} , "'\n";
   print STDERR "File '", $rhsherr->{'file'}, "' - Exception Message: '"
     , $rhsherr->{'exception'}->{'msg'}  , "'\n";
+
+  #print "'" . (caller(0))[3] . "' - done.\n";
 }
 
 
@@ -260,7 +267,22 @@ sub getAsyncCache
 
 sub getCache
 {
-  return $_[0]->getAsyncCache(@_[1..$#_])->get;
+	my $readwatch = $_[0]->getAsyncCache(@_[1..$#_]);
+	my $sdata = '';
+
+
+  #Force synchronous Processing
+  $readwatch->await;
+
+  #Check for Success
+  if($readwatch->is_done)
+  {
+  	#Pick only Data Field from the Result
+  	$sdata = ($readwatch->result())[2];
+  }
+
+  #Return resulting Data
+  return $sdata;
 }
 
 

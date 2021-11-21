@@ -11,3 +11,4 @@ log
 
 #Project Files
 .project
+.includepath
