@@ -248,7 +248,7 @@ sub saveProductList
 
       eval
       {
-	      $surlsjson = JSON::decode_json(\@arrurls);
+	      $surlsjson = JSON::encode_json(\@arrurls);
 
 	      unless($self->cache->setCache($scachekey, \$surlsjson))
 	      {

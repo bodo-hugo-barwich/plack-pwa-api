@@ -1,6 +1,6 @@
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-11-20
+# @version 2021-11-21
 # @package Plack Twiggy REST API
 # @subpackage Cache/Files.pm
 
@@ -272,14 +272,21 @@ sub getAsyncCache
 sub getCache
 {
 	my $readwatch = $_[0]->getAsyncCache(@_[1..$#_]);
+	my $sdata = '';
 
 
   #Force synchronous Processing
   $readwatch->await;
 
+  #Check for Success
+  if($readwatch->is_done)
+  {
+  	#Pick only Data Field from the Result
+  	$sdata = ($readwatch->result())[2];
+  }
 
-  #Communicate Success
-  return $readwatch->is_done;
+  #Return resulting Data
+  return $sdata;
 }
 
 
