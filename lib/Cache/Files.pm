@@ -271,7 +271,15 @@ sub getAsyncCache
 
 sub getCache
 {
-  return $_[0]->getAsyncCache(@_[1..$#_])->get;
+	my $readwatch = $_[0]->getAsyncCache(@_[1..$#_]);
+
+
+  #Force synchronous Processing
+  $readwatch->await;
+
+
+  #Communicate Success
+  return $readwatch->is_done;
 }
 
 

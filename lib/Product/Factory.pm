@@ -1,6 +1,6 @@
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-11-20
+# @version 2021-11-21
 # @package Plack Twiggy REST API
 # @subpackage Product/Factory.pm
 
@@ -248,11 +248,11 @@ sub saveProductList
 
       eval
       {
-	      $surlsjson = JSON::encode_json(\@arrurls);
+	      $surlsjson = JSON::decode_json(\@arrurls);
 
 	      unless($self->cache->setCache($scachekey, \$surlsjson))
 	      {
-	        print STDERR "Product List ($ioffset / $icount): Cache '$scachekey' could not be saved!";
+	        print STDERR "Product List ($ioffset / $icount): Cache '$scachekey' could not be saved!\n";
 
 	        $irs = 0;
 	      }
@@ -260,7 +260,16 @@ sub saveProductList
 
       if($@)
       {
-        print STDERR "Product List ($ioffset / $icount): Cache '$scachekey' could not be saved!";
+        my $ierr = 0 + $! ;
+
+
+        $@ = {'msg' => $@} unless(ref $@);
+        $ierr = -1 if($ierr == 0);
+
+        Product::Factory::_printWatchError({'key' => $scachekey, 'operation' => 'Set', 'file' => ''
+          , 'errorcode' => $ierr, 'errormessage' => $! , 'exception' => $@ });
+
+        print STDERR "Product List ($ioffset / $icount): Cache '$scachekey' could not be saved!\n";
 
         $irs = 0;
       } #if($@)
@@ -275,7 +284,7 @@ sub saveProductList
 
 	        unless($self->cache->setCache($scachekey, \$sprodjson))
           {
-	          print STDERR "Product '$sprodurl': Cache '$scachekey' could not be saved!";
+	          print STDERR "Product '$sprodurl': Cache '$scachekey' could not be saved!\n";
 
 	          $irs = 0;
           }
@@ -283,7 +292,16 @@ sub saveProductList
 
       	if($@)
       	{
-	        print STDERR "Product '$sprodurl': Cache '$scachekey' could not be saved!";
+	        my $ierr = 0 + $! ;
+
+
+	        $@ = {'msg' => $@} unless(ref $@);
+	        $ierr = -1 if($ierr == 0);
+
+	        Product::Factory::_printWatchError({'key' => $scachekey, 'operation' => 'Set', 'file' => ''
+            , 'errorcode' => $ierr, 'errormessage' => $! , 'exception' => $@ });
+
+          print STDERR "Product '$sprodurl': Cache '$scachekey' could not be saved!\n";
 
 	        $irs = 0;
       	}  #if($@)
@@ -298,6 +316,10 @@ sub saveProductList
 sub _printWatchError
 {
   my $rhsherr = $_[0];
+
+
+  print STDERR "wtch err dmp:\n", dump $rhsherr;
+  print STDERR "\n";
 
 
   print STDERR "Product '", $rhsherr->{'key'}, "': ", $rhsherr->{'operation'}, " Product failed with Exception ["
